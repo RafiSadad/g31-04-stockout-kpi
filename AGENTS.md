@@ -10,6 +10,7 @@ cleaning log, data flow diagram.
 
 1. README.md and LOG.md (definitions, steps, how to rerun, known issues).
 2. outputs/G31-04 KPI Tables.xlsx, sheet Reconcile (numbers that must still match the proposal).
+3. NOTES.md (status, to-do, deadlines, open decisions, Discord channels and drafted messages).
 
 # Rules
 

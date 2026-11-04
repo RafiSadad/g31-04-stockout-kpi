@@ -20,6 +20,7 @@ and the availability-history features (Peeranat, Data Engineer) are done by the 
 | Next week: customer demand features and the reason for each | 9 new features (trend, rates, visitors, last purchase, category demand), using past data only | `scripts/04_demand_features.py`, reasons in `docs/data_dictionary.md` and `LOG.md` section 8 |
 | Next week: fix missing category values | "Unknown" category when an item has no category yet, and parent category from `category_tree.csv` ("Unknown" if the category is not in the tree) | `scripts/03_build_kpis.py`, rules in `LOG.md` section 3 |
 | Next week: row and column counts in the cleaning log | Rows and columns before and after each of 21 cleaning steps | `docs/cleaning_log.md`, sheet `Cleaning_log`, helper `scripts/cleanlog.py` |
+| Status, to-do, deadlines and team notes | Kept up to date between work sessions | `NOTES.md` |
 | Every task: record what was done | Definitions, steps, libraries, how to rerun, what can fail, open questions | `LOG.md` |
 
 Commit history: commits by "Rafi Sadad Ar-Rabbani" were made on Rafi's laptop (runs on the real data). Commits by "Claude"
