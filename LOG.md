@@ -71,7 +71,7 @@ Also note: 43.5% on 13 Sep is written as 43% in the proposal, which looks like t
 - No model is trained. KPI 4 uses the rule only.
 - The data flow diagram is a draft. The Data Engineer who owns the final version (Peeranat) should correct it against the real cleaning pipeline.
 - `available = 0` meaning is still unverified.
-- `docs/data_dictionary.md` and `docs/cleaning_log.md` are produced by step 5 on the real data. They were not produced in the session of 4 Nov 2026 because the raw CSVs were not available there (section 8).
+- Open question for the group: all 883,701 "Unknown" cells are items whose `categoryid` is only recorded after the snapshot (none is an item without any category). If category is a fixed attribute, filling it backwards would remove "Unknown" completely. We do not do this now, because it uses a later record (section 8).
 - The data flow diagram does not show step 4 (demand features), step 5 (docs) or the "Unknown" category yet.
 
 ## 8. Task 4 Nov 2026: data dictionary, demand features, Unknown category, cleaning log (Rafi)
@@ -100,12 +100,17 @@ Also note: 43.5% on 13 Sep is written as 43% in the proposal, which looks like t
 
 The existing columns of step 3 (`views_*`, `atc_*`, `tx_*`, `demand_1w`, `changes_4w`) are kept and their reasons are in the dictionary.
 
-**How it was checked.** The raw CSVs were not available in the working session, so the scripts could not be run on the real data and
-`Reconcile` was not rerun on it. Instead, the scripts were run on a synthetic test set with the same columns (made only for testing, not saved in the repo),
-once with the old step 3 and once with the new one. Result: KPI1, KPI2_by_week, KPI2_categories_latest, KPI3_demand_unavail, KPI4 (both sheets),
-Watchlist and Reconcile were identical; KPI3_by_category had the same values (only the order of categories with equal demand differed); the modelling table had the same rows and values
-(only `cat` empty -> -1 and the new `cat_missing` column). The only additions are the "Unknown" rows and the column `unknown_category_items`. Because the eligible and
-high-risk counts exclude "Unknown", the numbers 220 and 22 in Reconcile should not move. **This still has to be confirmed by running `bash run_all.sh` on the real data.**
+**How it was checked.** First on a synthetic test set with the same columns (made only for testing, not saved in the repo): the old and the new step 3
+gave the same KPI values; the only additions were the "Unknown" rows and the column `unknown_category_items`.
+Then Rafi ran steps 1 to 5 on the real data (Windows, Python 3.13, pandas 3.0.5, 4 Nov 2026). Results:
+- `Reconcile`: 15 OK and the known DIFF (KPI3 min 21.9 vs 29, section 4). 220 eligible and 22 high-risk categories did not change.
+- Raw counts as before: 20,275,902 property rows (10,999,999 + 9,275,903), 2,756,101 events, 2,291,853 rows kept in step 1.
+- No duplicate (itemid, timestamp) rows for `available` or `categoryid` (0 rows dropped).
+- Status matrix 417,053 items x 18 snapshots. Forward fill: empty cells 6,003,315 -> 799,066.
+- Category: 202,531 items have at least one snapshot without a category. 883,701 cells filled with "Unknown", all of them items whose category is only recorded later.
+- Modelling table 283,849 rows (as before), of which 29,358 rows (10.3%) have category "Unknown". Step 4: 283,849 x 15 -> 283,849 x 24.
+- Features: `days_since_last_tx` is empty in 230,343 rows (81%, no purchase before t). `cat_demand_1w` and `item_share_of_cat_demand` are empty in the 29,358 Unknown rows.
+  `atc_rate_1w` reaches 26 and `buy_rate_4w` reaches 3 (add-to-carts or purchases without a view in the window). Consider capping them before a linear model.
 
 **How to rerun**: `bash run_all.sh`, or only the new parts: `python scripts/03_build_kpis.py && python scripts/04_demand_features.py && python scripts/05_docs.py`.
 Then open the `Reconcile` sheet (expect 15 OK and the known KPI3 min DIFF) and `Cleaning_log`.

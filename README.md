@@ -21,4 +21,10 @@ plus the data flow diagram.
 pip install -r requirements.txt
 bash run_all.sh            # a few minutes, needs about 4 GB RAM
 ```
+On Windows PowerShell without bash, run the scripts one by one:
+```powershell
+$env:DATA_DIR = "path\to\csvs"
+python scripts/01_extract_properties.py; python scripts/02_explore_snapshots.py; python scripts/03_build_kpis.py
+python scripts/04_demand_features.py; python scripts/05_docs.py
+```
 Raw data (about 1 GB) is not in git. See `LOG.md` for details.
