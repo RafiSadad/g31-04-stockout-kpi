@@ -17,10 +17,12 @@ A `0 x 0` before means the table is read from file in that step.
 | 03_build_kpis | 6 | drop duplicate (itemid, timestamp) for categoryid | categoryid rows | 788214 | 4 | 788214 | 4 | 0 | keep the last row |
 | 03_build_kpis | 7 | category per item and snapshot (last known, forward fill) | category matrix | 788214 | 4 | 417053 | 18 | -371161 | rows = items with a status; 202,531 items have at least one snapshot without a category |
 | 03_build_kpis | 8 | fill missing category with "Unknown" (cat = -1) | category matrix | 417053 | 18 | 417053 | 18 | 0 | cells filled: 883,701 (0 where the item never has a categoryid, 883,701 where it is only known later) |
-| 03_build_kpis | 9 | keep event in {view, addtocart, transaction} | events | 2756101 | 3 | 2756101 | 3 | 0 |  |
-| 03_build_kpis | 10 | stack item x snapshot tables | item x snapshot | 417053 | 12 | 7506954 | 12 | 7089901 | 417,053 items x 18 snapshots |
-| 03_build_kpis | 11 | drop weeks whose next snapshot is not 7 days later | item x snapshot | 7506954 | 12 | 6672848 | 12 | -834106 | 2 snapshots dropped (no label), 16 prediction weeks left |
-| 03_build_kpis | 12 | keep in-stock and active items, add label y_next_out and snapshot | item x snapshot -> modelling table | 6672848 | 12 | 283849 | 15 | -6388999 | +1 column = itemid index; rows with Unknown category: 29,358 |
-| 04_demand_features | 1 | load modelling table | modelling_table | 0 | 0 | 283849 | 15 | 283849 |  |
+| 03_build_kpis | 9 | load category tree | category_tree | 0 | 0 | 1669 | 2 | 1669 | 25 top-level categories have no parent |
+| 03_build_kpis | 10 | keep event in {view, addtocart, transaction} | events | 2756101 | 3 | 2756101 | 3 | 0 |  |
+| 03_build_kpis | 11 | stack item x snapshot tables | item x snapshot | 417053 | 14 | 7506954 | 14 | 7089901 | 417,053 items x 18 snapshots |
+| 03_build_kpis | 12 | drop weeks whose next snapshot is not 7 days later | item x snapshot | 7506954 | 14 | 6672848 | 14 | -834106 | 2 snapshots dropped (no label), 16 prediction weeks left |
+| 03_build_kpis | 13 | keep in-stock and active items, add label y_next_out and snapshot | item x snapshot -> modelling table | 6672848 | 14 | 283849 | 17 | -6388999 | +1 column = itemid index; rows with Unknown category: 29,358 |
+| 03_build_kpis | 14 | map category to parent category (unknown parent -> "Unknown") | modelling table | 283849 | 17 | 283849 | 17 | 0 | 30 of 1242 categoryid values in item_properties are not in category_tree (0 modelling rows); 5 modelling rows have a top-level category (own parent) |
+| 04_demand_features | 1 | load modelling table | modelling_table | 0 | 0 | 283849 | 17 | 283849 |  |
 | 04_demand_features | 2 | load events (4 of 5 columns) | events | 0 | 0 | 2756101 | 4 | 2756101 | transactionid not needed |
-| 04_demand_features | 3 | add demand features | modelling_table -> modelling_table_features | 283849 | 15 | 283849 | 24 | 0 | 9 new columns: demand_4w, demand_prev3w_avg, demand_trend, atc_rate_1w, buy_rate_4w, visitors_1w, days_since_last_tx, cat_demand_1w, item_share_of_cat_demand |
+| 04_demand_features | 3 | add demand features | modelling_table -> modelling_table_features | 283849 | 17 | 283849 | 26 | 0 | 9 new columns: demand_4w, demand_prev3w_avg, demand_trend, atc_rate_1w, buy_rate_4w, visitors_1w, days_since_last_tx, cat_demand_1w, item_share_of_cat_demand |

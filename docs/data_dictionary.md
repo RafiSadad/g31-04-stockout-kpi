@@ -27,8 +27,8 @@ Windows: 1w = (t - 7 days, t], 4w = (t - 28 days, t], t = snapshot time. All fea
 
 | column | type | meaning | example | used | why |
 |---|---|---|---|---|---|
-| categoryid | integer | Category id (same codes as `value` of property `categoryid`). | 1016 | not yet | Planned: join to get the parent category as a model feature. |
-| parentid | number, empty for top-level categories | Id of the parent category. | 213 | not yet | Planned: group small categories under their parent so more of them reach 20 items in KPI 2. |
+| categoryid | integer | Category id (same codes as `value` of property `categoryid`). | 1016 | yes (step 3) | Key to find the parent of each item category (`parent_cat`). |
+| parentid | number, empty for top-level categories | Id of the parent category. | 213 | yes (step 3) | Gives `parent_cat`: groups similar categories, so small categories still share information. Can later be used for KPI 2 at parent level. |
 
 ## modelling table (work/modelling_table_features.csv.gz), one row per item and prediction week
 
@@ -39,6 +39,8 @@ Windows: 1w = (t - 7 days, t], 4w = (t - 28 days, t], t = snapshot time. All fea
 | state | 0/1 | Stock status at t after forward fill. Always 1 in this table. | 1 | check only | Kept to show the eligibility filter (in stock at t). Not a feature. |
 | cat | integer | Last known categoryid at or before t. -1 = Unknown (no category known yet). | 1196 | feature | Stock-out risk differs by category, and KPI 2 is reported per category. |
 | cat_missing | 0/1 | 1 if `cat` is Unknown (-1). | 0 | feature | Lets a model treat missing category on its own instead of as a real code. |
+| parent_cat | integer | Parent of `cat` in category_tree. A top-level category is its own parent. -1 = Unknown (cat is Unknown or not in the tree). | 1181 | feature | Proposal feature. Small categories have few rows; the parent level gives the model more rows per group. |
+| cat_in_tree | 0/1 | 1 if `cat` is found in category_tree. | 1 | feature | Marks categories that are in the item data but not in the tree, so their Unknown parent is not read as a real group. |
 | views_1w | integer | Views of the item in the 1w window. | 9 | feature | Short-term interest. Part of the demand definition. |
 | views_4w | integer | Views in the 4w window. | 11 | feature | Longer, more stable interest level. |
 | atc_1w | integer | Add-to-carts in the 1w window. | 1 | feature | Stronger buying intent than a view. Part of the demand definition. |
