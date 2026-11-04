@@ -57,7 +57,7 @@ Data: Google Drive folder https://drive.google.com/drive/folders/1-_Qns7aF7vowcg
 Slides: Canva link is in #general.
 
 ## 5. Discord messages drafted on 4 Nov (send order: #slide, #report, #file-project, #dataset)
-Status: drafted, not confirmed as sent. Check the GitHub link opens without login before sending (repo must be public, or invite the members).
+Status (4 Nov, evening): #report, #file-project and #dataset were **sent**. #slide was **not sent**: the slides were already fixed in Canva. Wait for replies from Hill (2 proposal numbers) and Peeranat (category backfill).
 
 **#slide**
 ```
