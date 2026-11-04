@@ -143,3 +143,10 @@ for the 29,358 Unknown rows. 5 modelling rows have a top-level category (own par
 
 **What can fail.** `FileNotFoundError: category_tree.csv` if the file is not in `DATA_DIR`. Step 4 writes a large gzip file and can take a few minutes;
 do not stop it with Ctrl+C, or `modelling_table_features.csv.gz` is left half written (then rerun step 4).
+
+## 10. README and Windows runner (4 Nov 2026)
+- `README.md` rewritten: scope is Rafi's Data Engineer work, a table of each proposal task with the file that holds the result, key results,
+  where the CSVs are (not on GitHub, read from the local disk through `DATA_DIR`), how to run, open points.
+- `run_all.ps1` (new): runs steps 1 to 5 on Windows PowerShell. Default `DATA_DIR` is `..` (the folder above the repository, where Rafi keeps the CSVs).
+  It stops with a clear message if one of the 4 CSVs is missing, or if a step fails.
+  Rerun: `powershell -ExecutionPolicy Bypass -File run_all.ps1`. Not tested in the working session (no PowerShell there); `run_all.sh` does the same with bash.
