@@ -4,17 +4,19 @@ flowchart LR
     A2["events.csv<br/>2,756,101 rows"]
     A3["category_tree.csv<br/>1,669 rows"]
   end
-  subgraph EXT["2. Extract"]
+  subgraph EXT["2. Extract (step 1)"]
     B1["Keep property = available and categoryid<br/>2,291,853 rows"]
   end
-  subgraph BLD["3. Build weekly item table"]
+  subgraph BLD["3. Build weekly item table (step 3)"]
     C1["Status per item per snapshot<br/>18 dates, carry last value forward"]
+    C5["Category per snapshot, last known<br/>none yet = Unknown<br/>parent from tree, not in tree = Unknown"]
     C2["Demand per item<br/>views, add-to-carts, purchases<br/>last 7 and 28 days"]
     C3["Active = at least 1 event in last 7 days"]
     C4["Label: out of stock at snapshot + 7 days<br/>skip 14 Jun (21 Jun missing)"]
   end
   subgraph MT["4. Modelling table"]
     D1["In-stock active items only<br/>283,849 rows, 10.4% stock-outs"]
+    D2["Demand features (step 4)<br/>trend, rates, visitors,<br/>last purchase, category demand"]
   end
   subgraph KPI["5. KPI tables"]
     E1["KPI 1 Out-of-stock rate"]
@@ -22,12 +24,14 @@ flowchart LR
     E3["KPI 3 Demand on unavailable items"]
     E4["KPI 4 Model performance<br/>rule baseline for now"]
   end
+  G1["Data dictionary and cleaning log<br/>(step 5)"]
   F1["6. Dashboard<br/>Head of Inventory"]
   M1["Models later<br/>Random Forest, XGBoost, Logistic Regression"]
   A1 --> B1 --> C1
+  B1 --> C5
+  A3 --> C5
   A2 --> C2
   A2 --> C3
-  A3 -.->|"parent category, later"| M1
   C1 --> C4
   C1 --> E1
   C2 --> E3
@@ -35,9 +39,14 @@ flowchart LR
   C3 --> D1
   C4 --> D1
   C2 --> D1
+  C5 --> D1
+  C5 --> E2
+  A2 --> D2
+  D1 --> D2
   D1 --> E2
   D1 --> E4
-  D1 -.-> M1 -.-> E4
+  D2 -.-> M1 -.-> E4
+  D2 --> G1
   E1 --> F1
   E2 --> F1
   E3 --> F1
