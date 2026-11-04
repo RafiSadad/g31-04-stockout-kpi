@@ -28,6 +28,9 @@ reuse them and rerun them if something breaks.
 - **Category**: last known `categoryid` at or before the snapshot. If there is none, the category is **"Unknown"** (code `cat = -1`, flag `cat_missing = 1`).
   This happens when the item never has a `categoryid`, or when its first `categoryid` is recorded after the snapshot. We do not fill backwards
   from later records, because that would use information from the future. (Added 4 Nov 2026, see section 8.)
+- **Parent category**: `parentid` of the category in `category_tree.csv`. A top-level category (25 have no parent) is its own parent.
+  If the category is "Unknown" or not in the tree, the parent is "Unknown" (`parent_cat = -1`) and `cat_in_tree = 0`. This follows proposal 2.5
+  ("25 categories have no parent, 30 category IDs are not in the tree ... We use an Unknown category"). (Added 4 Nov 2026, see section 9.)
 - **Label**: 1 if the item is out of stock at the snapshot exactly 7 days later. Weeks whose next snapshot is not 7 days away are skipped (14 Jun, because 21 Jun is missing; 13 Sep, because it is the last date). This leaves 16 prediction weeks: 10 train (10 May to 26 Jul), 3 validate (2 to 16 Aug), 3 test (23 Aug to 6 Sep).
 - **Eligible rows (modelling table)**: items in stock and active at the snapshot.
 - **KPI 1**: among active items with a known status, share with status 0.
@@ -46,7 +49,7 @@ Also note: 43.5% on 13 Sep is written as 43% in the proposal, which looks like t
 
 ## 5. Things to remember
 - The modelling table has the stock-out label only for in-stock active items, so it is built for classification, not for KPI 1 or KPI 3 (those use all active items or all demand).
-- `category_tree.csv` is not used yet. Parent category is a model feature for later.
+- `category_tree.csv` is used since 4 Nov 2026 for `parent_cat` (step 3). KPI 2 is still computed at category level, not parent level.
 - Before 4 Nov 2026 rows without a category were silently dropped by `groupby` in the per-category sheets (KPI 2 latest, KPI 3 by category) and had an empty category in the watch list. They now show as "Unknown". The KPI numbers themselves did not change (tested, section 8).
 - `demand_4w`, `demand_prev3w_avg` and `demand_trend` are less reliable for the first 3 snapshots (10, 17, 24 May): the 28-day window starts before the data (3 May), so the earlier weeks look lower than they were and the trend looks higher.
 - Early snapshots have less history, so `changes_4w` uses fewer than 4 steps for the first 4 dates.
@@ -69,10 +72,10 @@ Also note: 43.5% on 13 Sep is written as 43% in the proposal, which looks like t
 
 ## 7. Not done
 - No model is trained. KPI 4 uses the rule only.
-- The data flow diagram is a draft. The Data Engineer who owns the final version (Peeranat) should correct it against the real cleaning pipeline.
 - `available = 0` meaning is still unverified.
 - Open question for the group: all 883,701 "Unknown" cells are items whose `categoryid` is only recorded after the snapshot (none is an item without any category). If category is a fixed attribute, filling it backwards would remove "Unknown" completely. We do not do this now, because it uses a later record (section 8).
-- The data flow diagram does not show step 4 (demand features), step 5 (docs) or the "Unknown" category yet.
+- The data flow diagram is still a draft for Peeranat to check against the final cleaning pipeline (it now shows steps 4 and 5, "Unknown" and the parent category).
+- Proposal 2.1 says 1,180 categories, but step 2 counts 1,242 distinct `categoryid` values in item_properties. The proposal does not say how 1,180 was counted (maybe a subset of items). To settle with the Data Analyst.
 
 ## 8. Task 4 Nov 2026: data dictionary, demand features, Unknown category, cleaning log (Rafi)
 **What was done**
@@ -117,3 +120,22 @@ Then Rafi ran steps 1 to 5 on the real data (Windows, Python 3.13, pandas 3.0.5,
 Then open the `Reconcile` sheet (expect 15 OK and the known KPI3 min DIFF) and `Cleaning_log`.
 
 **What can fail**: see section 6 (last four rows). Also: step 4 reads `events.csv` with `visitorid`, which needs a bit more RAM than step 3 (one more integer column).
+
+## 9. Task 4 Nov 2026 (second part): parent category (Rafi)
+**Why.** Proposal 2.2 lists "category and parent category" as features, and proposal 2.5 says category IDs that are not in the tree get an "Unknown" category.
+The first part (section 8) only handled items with no category at all.
+
+**What was done**
+- Step 3 reads `category_tree.csv` (1,669 rows, small, read whole) and adds two columns to the modelling table: `parent_cat` and `cat_in_tree` (rule in section 3).
+  The modelling table now has 17 columns (with `itemid`), the feature table 26.
+- Two new rows in the cleaning log: "load category tree" and "map category to parent category". The second note gives how many `categoryid` values
+  of item_properties are not in the tree, how many modelling rows that affects, and how many rows have a top-level category.
+- `dictionary_spec.py`: `category_tree` columns are now "yes (step 3)", and `parent_cat` and `cat_in_tree` are described.
+- `docs/data_flow.mmd` and `docs/data_flow.png`: category tree is now a solid input, and steps 4 and 5 and the "Unknown" fill are shown. PNG rendered with mermaid-cli 11.4.2 (`mmdc`, command in section 2).
+- Checked on the synthetic test set with the real `category_tree.csv`: all KPI sheets and Reconcile are identical to the run before this change. No KPI uses the parent yet.
+
+**How to rerun.** `category_tree.csv` must be in `DATA_DIR` (it already is in the course zip). Then steps 3, 4 and 5 (steps 1 and 2 do not change):
+`python scripts/03_build_kpis.py`, `python scripts/04_demand_features.py`, `python scripts/05_docs.py`. Check Reconcile (15 OK + the known DIFF).
+
+**What can fail.** `FileNotFoundError: category_tree.csv` if the file is not in `DATA_DIR`. If the proposal number "30 category IDs not in the tree" is not
+what the cleaning log shows, check whether the proposal counted all items or only active ones.
