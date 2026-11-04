@@ -6,6 +6,8 @@ Definitions (follow G31-04 Proposal, Chapter 1.2 and 2.2):
   demand          = views + add-to-carts in (t - 7 days, t].
   next-week label = state at the snapshot exactly 7 days after t (needs that snapshot to exist).
   category        = last known categoryid at or before t. If there is none, cat = -1 ("Unknown") and cat_missing = 1.
+  parent category = parentid of cat in category_tree.csv. A top-level category is its own parent. If cat is Unknown or
+                    not in the tree, parent_cat = -1 ("Unknown") and cat_in_tree = 0.
                     "Unknown" is kept in the modelling table and shown in the KPI sheets, but it is not ranked in KPI 2.
 Outputs: work/modelling_table.csv.gz, work/item_week.csv.gz (input for step 4) and outputs/G31-04 KPI Tables.xlsx
 Row and column counts of each cleaning step go to work/cleaning_log.csv.
@@ -52,6 +54,14 @@ C = C.fillna(UNKNOWN_CAT)
 log.add('fill missing category with "Unknown" (cat = -1)', "category matrix", C.shape, C.shape,
         f"cells filled: {n_miss:,} ({n_never:,} where the item never has a categoryid, {n_miss - n_never:,} where it is only known later)")
 Sv, Cv = S.to_numpy(), C.to_numpy()
+
+# parent category from the category tree (small file, read whole)
+tree = pd.read_csv(DATA_DIR / "category_tree.csv")
+log.add("load category tree", "category_tree", (0, 0), tree.shape,
+        f"{int(tree['parentid'].isna().sum())} top-level categories have no parent")
+PARENT = {int(c): int(c if pd.isna(p) else p) for c, p in zip(tree["categoryid"], tree["parentid"])}
+item_cats = set(c["value"].astype(float).astype(int))
+not_in_tree = sorted(item_cats - set(PARENT))
 print("items:", len(items), "snapshots:", len(snaps))
 
 # ---------- demand per snapshot ----------
@@ -69,6 +79,8 @@ for j, t in enumerate(snaps):
     d["state"] = Sv[:, j]
     d["cat"] = Cv[:, j].astype("int64")
     d["cat_missing"] = (d["cat"] == UNKNOWN_CAT).astype(int)
+    d["parent_cat"] = d["cat"].map(PARENT).fillna(UNKNOWN_CAT).astype("int64")
+    d["cat_in_tree"] = d["cat"].isin(list(PARENT)).astype(int)
     for col, nm in (("view", "views"), ("addtocart", "atc"), ("transaction", "tx")):
         d[f"{nm}_1w"] = w1[col].reindex(items).fillna(0).to_numpy()
         d[f"{nm}_4w"] = w4[col].reindex(items).fillna(0).to_numpy()
@@ -141,6 +153,11 @@ log.add("drop weeks whose next snapshot is not 7 days later", "item x snapshot",
 log.add("keep in-stock and active items, add label y_next_out and snapshot", "item x snapshot -> modelling table",
         (len(items) * n_weeks, pooled[1]), (mt.shape[0], mt.shape[1] + 1),
         f"+1 column = itemid index; rows with Unknown category: {int(mt['cat_missing'].sum()):,}")
+known = mt["cat_missing"] == 0
+log.add('map category to parent category (unknown parent -> "Unknown")', "modelling table", (mt.shape[0], mt.shape[1] + 1), (mt.shape[0], mt.shape[1] + 1),
+        f"{len(not_in_tree)} of {len(item_cats)} categoryid values in item_properties are not in category_tree "
+        f"({int((known & (mt['cat_in_tree'] == 0)).sum()):,} modelling rows); "
+        f"{int((known & (mt['parent_cat'] == mt['cat'])).sum()):,} modelling rows have a top-level category (own parent)")
 mt.to_csv(WORK_DIR / "modelling_table.csv.gz", index_label="itemid")
 # small table of all active items per snapshot (any status), used by step 4 for category demand
 iw = pd.concat([frames[j].loc[frames[j]["active"], ["cat", "demand_1w"]].assign(snapshot=dates[j]) for j in range(len(snaps))])
