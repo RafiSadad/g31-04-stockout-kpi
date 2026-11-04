@@ -34,27 +34,27 @@ Windows: 1w = (t - 7 days, t], 4w = (t - 28 days, t], t = snapshot time. All fea
 
 | column | type | meaning | example | used | why |
 |---|---|---|---|---|---|
-| itemid | integer | Item id. | 829 | key | Identifies the row together with `snapshot`. |
-| snapshot | text date YYYY-MM-DD | Snapshot date t of the row (16 prediction weeks). | 2015-05-10 | key | Time key. Used for the train / validate / test split by date. |
+| itemid | integer | Item id. | 651 | key | Identifies the row together with `snapshot`. |
+| snapshot | text date YYYY-MM-DD | Snapshot date t of the row (16 prediction weeks). | 2015-06-07 | key | Time key. Used for the train / validate / test split by date. |
 | state | 0/1 | Stock status at t after forward fill. Always 1 in this table. | 1 | check only | Kept to show the eligibility filter (in stock at t). Not a feature. |
-| cat | integer | Last known categoryid at or before t. -1 = Unknown (no category known yet). | 707 | feature | Stock-out risk differs by category, and KPI 2 is reported per category. |
+| cat | integer | Last known categoryid at or before t. -1 = Unknown (no category known yet). | 1196 | feature | Stock-out risk differs by category, and KPI 2 is reported per category. |
 | cat_missing | 0/1 | 1 if `cat` is Unknown (-1). | 0 | feature | Lets a model treat missing category on its own instead of as a real code. |
-| views_1w | integer | Views of the item in the 1w window. | 43 | feature | Short-term interest. Part of the demand definition. |
-| views_4w | integer | Views in the 4w window. | 43 | feature | Longer, more stable interest level. |
-| atc_1w | integer | Add-to-carts in the 1w window. | 3 | feature | Stronger buying intent than a view. Part of the demand definition. |
-| atc_4w | integer | Add-to-carts in the 4w window. | 3 | feature | Longer-run intent level. |
+| views_1w | integer | Views of the item in the 1w window. | 9 | feature | Short-term interest. Part of the demand definition. |
+| views_4w | integer | Views in the 4w window. | 11 | feature | Longer, more stable interest level. |
+| atc_1w | integer | Add-to-carts in the 1w window. | 1 | feature | Stronger buying intent than a view. Part of the demand definition. |
+| atc_4w | integer | Add-to-carts in the 4w window. | 1 | feature | Longer-run intent level. |
 | tx_1w | integer | Purchases (transaction events) in the 1w window. | 1 | feature | Purchases are what actually take units out of stock. |
 | tx_4w | integer | Purchases in the 4w window. | 1 | feature | Recent sales level, less noisy than one week. |
-| demand_1w | integer | views_1w + atc_1w (proposal definition of demand). | 46 | feature | Main demand measure. Also the weight in the demand-weighted KPI 2 score and in KPI 3. |
+| demand_1w | integer | views_1w + atc_1w (proposal definition of demand). | 10 | feature | Main demand measure. Also the weight in the demand-weighted KPI 2 score and in KPI 3. |
 | active | true/false | At least one event in the 1w window. Always true in this table. | True | check only | Kept to show the eligibility filter (active at t). Not a feature. |
 | changes_4w | integer | Number of status changes over the last 4 snapshot steps. | 0 | feature | Items that switched status recently tend to switch again. It is also the KPI 4 rule baseline. |
 | y_next_out | 0/1 | Label: 1 if the item is out of stock at the snapshot 7 days after t. | 0 | label | Target of the classification model. |
-| demand_4w | integer | views_4w + atc_4w. | 46 | feature | Demand level over a month, smoother than demand_1w. |
-| demand_prev3w_avg | number | (demand_4w - demand_1w) / 3, the weekly average of the 3 weeks before the last week. | 0 | feature | Baseline to compare the last week against. |
-| demand_trend | number | (demand_1w + 1) / (demand_prev3w_avg + 1). Above 1 = demand is rising. | 47 | feature | A sudden rise in demand can empty stock faster than it is refilled. The +1 avoids division by zero. |
-| atc_rate_1w | number | atc_1w / views_1w, 0 if no views. | 0.07 | feature | Share of views that turn into intent. High intent with the same views means more units are likely to be sold. Can be above 1 when an item is added to cart without a view in the window. |
-| buy_rate_4w | number | tx_4w / views_4w, 0 if no views. | 0.023 | feature | How well views turn into sales over a month. Can be above 1 in rare cases (purchases without a view in the window). |
-| visitors_1w | integer | Distinct visitors with a view or add-to-cart in the 1w window. | 37 | feature | Separates broad demand (many people) from one visitor who views the same item many times. |
-| days_since_last_tx | number, can be empty | Days from the last purchase at or before t to t. Empty = no purchase seen since 3 May. | 6.35 | feature | Items that sold recently are more likely to run out. Fill the empty values at model time (for example with a large number plus a flag). |
-| cat_demand_1w | integer, empty for Unknown | Sum of demand_1w of all active items in the same category at t (in stock or not). | 491 | feature | How busy the whole category is. Out-of-stock siblings can push demand to the in-stock item. |
-| item_share_of_cat_demand | number, empty for Unknown | demand_1w / cat_demand_1w. | 0.094 | feature | Whether the item is a main seller in its category or a small one. |
+| demand_4w | integer | views_4w + atc_4w. | 12 | feature | Demand level over a month, smoother than demand_1w. |
+| demand_prev3w_avg | number | (demand_4w - demand_1w) / 3, the weekly average of the 3 weeks before the last week. | 0.667 | feature | Baseline to compare the last week against. |
+| demand_trend | number | (demand_1w + 1) / (demand_prev3w_avg + 1). Above 1 = demand is rising. | 6.6 | feature | A sudden rise in demand can empty stock faster than it is refilled. The +1 avoids division by zero. |
+| atc_rate_1w | number | atc_1w / views_1w, 0 if no views. | 0.111 | feature | Share of views that turn into intent. High intent with the same views means more units are likely to be sold. Can be above 1 when an item is added to cart without a view in the window. |
+| buy_rate_4w | number | tx_4w / views_4w, 0 if no views. | 0.091 | feature | How well views turn into sales over a month. Can be above 1 in rare cases (purchases without a view in the window). |
+| visitors_1w | integer | Distinct visitors with a view or add-to-cart in the 1w window. | 4 | feature | Separates broad demand (many people) from one visitor who views the same item many times. |
+| days_since_last_tx | number, can be empty | Days from the last purchase at or before t to t. Empty = no purchase seen since 3 May. | 4.25 | feature | Items that sold recently are more likely to run out. Fill the empty values at model time (for example with a large number plus a flag). |
+| cat_demand_1w | integer, empty for Unknown | Sum of demand_1w of all active items in the same category at t (in stock or not). | 209 | feature | How busy the whole category is. Out-of-stock siblings can push demand to the in-stock item. |
+| item_share_of_cat_demand | number, empty for Unknown | demand_1w / cat_demand_1w. | 0.048 | feature | Whether the item is a main seller in its category or a small one. |
