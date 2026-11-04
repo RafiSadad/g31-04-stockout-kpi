@@ -54,7 +54,9 @@ Project Based\
 
 The environment variable `DATA_DIR` tells the scripts where the CSVs are. `..` means "the folder above".
 That the real files were read can be seen in the cleaning log: 10,999,999 + 9,275,903 property rows and 2,756,101 events.
-Other group members need their own copy of the 4 CSVs (course zip `item_properties_part1.zip`).
+Other group members need their own copy of the 4 CSVs. Download them from the group Google Drive folder:
+https://drive.google.com/drive/folders/1-_Qns7aF7vowcg9gIa5i7x6i3qTCtGDm
+Unzip and put the 4 CSVs in the folder above the repository (as in the picture above), not inside it.
 
 Files made during a run but not uploaded: `work/` (intermediate tables, for example the modelling table
 `work/modelling_table_features.csv.gz`). They are rebuilt by the scripts.
