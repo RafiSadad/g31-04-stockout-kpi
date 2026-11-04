@@ -108,7 +108,8 @@ Then Rafi ran steps 1 to 5 on the real data (Windows, Python 3.13, pandas 3.0.5,
 - No duplicate (itemid, timestamp) rows for `available` or `categoryid` (0 rows dropped).
 - Status matrix 417,053 items x 18 snapshots. Forward fill: empty cells 6,003,315 -> 799,066.
 - Category: 202,531 items have at least one snapshot without a category. 883,701 cells filled with "Unknown", all of them items whose category is only recorded later.
-- Modelling table 283,849 rows (as before), of which 29,358 rows (10.3%) have category "Unknown". Step 4: 283,849 x 15 -> 283,849 x 24.
+- Modelling table 283,849 rows (as before), of which 29,358 rows (10.3%) have category "Unknown". Most of them are early: 26,361 (90%) are in the first 5 weeks (7,600 on 10 May, 6,821 on 17 May, 5,665 on 24 May, 3,365 on 31 May, 2,910 on 7 Jun), and from 28 Jun on it is 140 to 451 per week (column `unknown_category_items` in `KPI2_by_week`). So `categoryid` seems to be recorded later than `available` for many items, and "Unknown" falls mostly in the train split.
+  On 13 Sep no Unknown item has demand, so `KPI3_by_category` has no Unknown row that day. Step 4: 283,849 x 15 -> 283,849 x 24.
 - Features: `days_since_last_tx` is empty in 230,343 rows (81%, no purchase before t). `cat_demand_1w` and `item_share_of_cat_demand` are empty in the 29,358 Unknown rows.
   `atc_rate_1w` reaches 26 and `buy_rate_4w` reaches 3 (add-to-carts or purchases without a view in the window). Consider capping them before a linear model.
 

@@ -25,8 +25,9 @@ ex["events"]["transactionid"] = "" if tid.empty else str(int(tid.iloc[0]))  # fi
 ct = pd.read_csv(DATA_DIR / "category_tree.csv")
 ct_row = ct.dropna().iloc[0]
 ex["category_tree"] = {"categoryid": str(int(ct_row["categoryid"])), "parentid": str(int(ct_row["parentid"]))}
-mt = pd.read_csv(WORK_DIR / "modelling_table_features.csv.gz", nrows=200_000)
-pick = mt[(mt["tx_4w"] > 0) & (mt["cat_missing"] == 0) & mt["days_since_last_tx"].notna()]
+mt = pd.read_csv(WORK_DIR / "modelling_table_features.csv.gz")
+# from 7 Jun on, the 28-day window lies fully inside the data (starts 3 May), so 4w features are not partial
+pick = mt[(mt["snapshot"] >= "2015-06-07") & (mt["tx_4w"] > 0) & (mt["cat_missing"] == 0) & mt["days_since_last_tx"].notna()]
 mt_row = (pick if len(pick) else mt).iloc[0]
 mt_key = [k for k in SPEC if k.startswith("modelling table")][0]
 ex[mt_key] = {c: (f"{v:.3f}".rstrip("0").rstrip(".") if isinstance(v, float) else str(v)) for c, v in mt_row.items()}
