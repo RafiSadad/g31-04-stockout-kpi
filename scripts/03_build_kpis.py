@@ -5,31 +5,59 @@ Definitions (follow G31-04 Proposal, Chapter 1.2 and 2.2):
   active(item, t) = at least one event (view, addtocart, transaction) in (t - 7 days, t].
   demand          = views + add-to-carts in (t - 7 days, t].
   next-week label = state at the snapshot exactly 7 days after t (needs that snapshot to exist).
-Outputs: work/modelling_table.csv.gz and outputs/KPI_tables.xlsx
+  category        = last known categoryid at or before t. If there is none, cat = -1 ("Unknown") and cat_missing = 1.
+                    "Unknown" is kept in the modelling table and shown in the KPI sheets, but it is not ranked in KPI 2.
+Outputs: work/modelling_table.csv.gz, work/item_week.csv.gz (input for step 4) and outputs/G31-04 KPI Tables.xlsx
+Row and column counts of each cleaning step go to work/cleaning_log.csv.
 """
 import numpy as np
 import pandas as pd
-from config import DATA_DIR, WORK_DIR, OUT_DIR
+from config import DATA_DIR, WORK_DIR, OUT_DIR, UNKNOWN_CAT
+from cleanlog import CleanLog
 
 DAY = 86_400_000
+log = CleanLog("03_build_kpis")
 p = pd.read_csv(WORK_DIR / "item_props_small.csv.gz", dtype={"value": "string"})
+log.add("load step 1 output", "item_props_small", (0, 0), p.shape)
 ev = pd.read_csv(DATA_DIR / "events.csv", usecols=["timestamp", "event", "itemid"])
+log.add("load events (3 of 5 columns)", "events", (0, 0), ev.shape, "visitorid and transactionid not needed here")
 
 # ---------- snapshots and state matrices (items x snapshots) ----------
-a = p[p.property == "available"].drop_duplicates(["itemid", "timestamp"], keep="last")
+a0 = p[p.property == "available"]
+a = a0.drop_duplicates(["itemid", "timestamp"], keep="last")
+log.add("drop duplicate (itemid, timestamp) for available", "available rows", a0.shape, a.shape, "keep the last row")
 snaps = np.sort(a["timestamp"].unique())
 dates = pd.to_datetime(snaps, unit="ms").strftime("%Y-%m-%d")
 S = a.pivot(index="itemid", columns="timestamp", values="value").astype(float).reindex(columns=snaps)
+na_before = int(S.isna().sum().sum())
+log.add("pivot available to item x snapshot status matrix", "status matrix", a.shape, S.shape,
+        f"rows = items, columns = {len(snaps)} snapshots; empty cells: {na_before:,}")
 S = S.ffill(axis=1)                       # carry the last known status forward
+na_after = int(S.isna().sum().sum())
+log.add("forward fill status across snapshots", "status matrix", S.shape, S.shape,
+        f"empty cells {na_before:,} -> {na_after:,} (left empty = before the first known status)")
 items = S.index
-c = p[p.property == "categoryid"].drop_duplicates(["itemid", "timestamp"], keep="last")
+c0 = p[p.property == "categoryid"]
+c = c0.drop_duplicates(["itemid", "timestamp"], keep="last")
+log.add("drop duplicate (itemid, timestamp) for categoryid", "categoryid rows", c0.shape, c.shape, "keep the last row")
 C = c.pivot(index="itemid", columns="timestamp", values="value").astype(float)
 C = C.reindex(columns=sorted(set(C.columns) | set(snaps))).ffill(axis=1)[snaps].reindex(items)
+log.add("category per item and snapshot (last known, forward fill)", "category matrix", c.shape, C.shape,
+        f"rows = items with a status; {int(C.isna().any(axis=1).sum()):,} items have at least one snapshot without a category")
+# Missing category: either the item never has a categoryid, or its first categoryid comes after the snapshot.
+never = ~C.index.isin(c["itemid"].unique())
+n_miss = int(C.isna().sum().sum())
+n_never = int(C[never].isna().sum().sum())
+C = C.fillna(UNKNOWN_CAT)
+log.add('fill missing category with "Unknown" (cat = -1)', "category matrix", C.shape, C.shape,
+        f"cells filled: {n_miss:,} ({n_never:,} where the item never has a categoryid, {n_miss - n_never:,} where it is only known later)")
 Sv, Cv = S.to_numpy(), C.to_numpy()
 print("items:", len(items), "snapshots:", len(snaps))
 
 # ---------- demand per snapshot ----------
+n0 = ev.shape
 ev = ev[ev["event"].isin(["view", "addtocart", "transaction"])]
+log.add("keep event in {view, addtocart, transaction}", "events", n0, ev.shape)
 def window(t, days):
     w = ev[(ev["timestamp"] > t - days * DAY) & (ev["timestamp"] <= t)]
     return w.groupby(["itemid", "event"]).size().unstack(fill_value=0).reindex(columns=["view", "addtocart", "transaction"], fill_value=0)
@@ -39,7 +67,8 @@ for j, t in enumerate(snaps):
     w1, w4 = window(t, 7), window(t, 28)
     d = pd.DataFrame(index=items)
     d["state"] = Sv[:, j]
-    d["cat"] = Cv[:, j]
+    d["cat"] = Cv[:, j].astype("int64")
+    d["cat_missing"] = (d["cat"] == UNKNOWN_CAT).astype(int)
     for col, nm in (("view", "views"), ("addtocart", "atc"), ("transaction", "tx")):
         d[f"{nm}_1w"] = w1[col].reindex(items).fillna(0).to_numpy()
         d[f"{nm}_4w"] = w4[col].reindex(items).fillna(0).to_numpy()
@@ -83,15 +112,18 @@ for j in range(len(snaps) - 1):
     g["observed_stockout_rate_pct"] = (100 * g["observed_stockouts"] / g["eligible_items"]).round(1)
     g["demand_weighted_risk"] = np.where(g["demand"] > 0, (100 * g["wd"] / g["demand"]).round(1), np.nan)
     g = g.drop(columns="wd")
+    unk = g[g.index == UNKNOWN_CAT]               # "Unknown" is shown but never ranked: it is not a real category
+    g = g[g.index != UNKNOWN_CAT]
     ok = g[g["eligible_items"] >= 20].sort_values("observed_stockout_rate_pct", ascending=False)
     n_el = len(ok); n_high = int(round(0.10 * n_el))
-    k2w.append({"snapshot": dates[j], "next_snapshot": dates[j + 1], "eligible_categories": n_el, "high_risk_categories": n_high})
+    k2w.append({"snapshot": dates[j], "next_snapshot": dates[j + 1], "eligible_categories": n_el, "high_risk_categories": n_high,
+                "unknown_category_items": int(unk["eligible_items"].sum())})
     if j == len(snaps) - 2:                       # latest usable week: 6 Sep -> 13 Sep
         g["tier"] = "low data (<20 items)"
         ok = ok.copy()
         ok["tier"] = ["High"] * n_high + ["Medium"] * int(round(0.20 * n_el)) + ["Low"] * (n_el - n_high - int(round(0.20 * n_el)))
-        cat_last = pd.concat([ok, g[g["eligible_items"] < 20].sort_values("eligible_items", ascending=False)]).reset_index()
-        cat_last["cat"] = cat_last["cat"].astype("Int64")
+        unk = unk.assign(tier="Unknown category (not ranked)")
+        cat_last = pd.concat([ok, g[g["eligible_items"] < 20].sort_values("eligible_items", ascending=False), unk]).reset_index()
         cat_last = cat_last.rename(columns={"cat": "categoryid"})
     # KPI 4 rule: predict stock-out when the item changed status in the last 4 weeks
     pred = (el["changes_4w"] > 0).astype(int)
@@ -100,7 +132,19 @@ for j in range(len(snaps) - 1):
     k4w.append({"snapshot": dates[j], "rows": len(el), "stockouts": int(el["y_next_out"].sum()), "TP": tp, "FP": fp, "FN": fn, "TN": tn})
 
 mt = pd.concat(rows)
+pooled = (len(items) * len(snaps), frames[0].shape[1])
+log.add("stack item x snapshot tables", "item x snapshot", (len(items), frames[0].shape[1]), pooled,
+        f"{len(items):,} items x {len(snaps)} snapshots")
+n_weeks = len(rows)
+log.add("drop weeks whose next snapshot is not 7 days later", "item x snapshot", pooled, (len(items) * n_weeks, pooled[1]),
+        f"{len(snaps) - n_weeks} snapshots dropped (no label), {n_weeks} prediction weeks left")
+log.add("keep in-stock and active items, add label y_next_out and snapshot", "item x snapshot -> modelling table",
+        (len(items) * n_weeks, pooled[1]), (mt.shape[0], mt.shape[1] + 1),
+        f"+1 column = itemid index; rows with Unknown category: {int(mt['cat_missing'].sum()):,}")
 mt.to_csv(WORK_DIR / "modelling_table.csv.gz", index_label="itemid")
+# small table of all active items per snapshot (any status), used by step 4 for category demand
+iw = pd.concat([frames[j].loc[frames[j]["active"], ["cat", "demand_1w"]].assign(snapshot=dates[j]) for j in range(len(snaps))])
+iw.to_csv(WORK_DIR / "item_week.csv.gz", index_label="itemid")
 k2w, k4 = pd.DataFrame(k2w), pd.DataFrame(k4w)
 
 def split_of(d):
@@ -124,11 +168,9 @@ cat3["demand_on_unavailable"] = cat3["demand_on_unavailable"].fillna(0)
 cat3 = cat3[cat3["demand"] > 0]
 cat3["demand_on_unavailable_pct"] = (100 * cat3["demand_on_unavailable"] / cat3["demand"]).round(1)
 cat3 = cat3.sort_values("demand", ascending=False).reset_index().rename(columns={"cat": "categoryid"})
-cat3["categoryid"] = cat3["categoryid"].astype("Int64")
 wl = dl[(dl["state"] == 1) & dl["active"] & (dl["changes_4w"] > 0)].sort_values("demand_1w", ascending=False).head(50)
 wl = wl.reset_index()[["itemid", "cat", "views_1w", "atc_1w", "changes_4w"]].rename(
     columns={"cat": "categoryid", "views_1w": "views_7d", "atc_1w": "addtocart_7d", "changes_4w": "status_changes_4wk"})
-wl["categoryid"] = wl["categoryid"].astype("Int64")
 wl["predicted_p_stockout"] = "to be added (model)"
 
 # ---------- reconciliation with the proposal ----------
@@ -160,15 +202,25 @@ rec.loc[rec["check"].str.startswith(("Modelling", "Stock-outs in")), "match"] = 
     rec.loc[rec["check"].str.startswith(("Modelling", "Stock-outs in")), "proposal_says"].astype(float)
     == rec.loc[rec["check"].str.startswith(("Modelling", "Stock-outs in")), "script_result"].astype(float), "OK", "DIFF")
 
+def show_unknown(df):
+    """Write the -1 code as the word Unknown in the sheets."""
+    df = df.copy()
+    df["categoryid"] = df["categoryid"].astype("int64").astype(object).where(df["categoryid"] != UNKNOWN_CAT, "Unknown")
+    return df
+cat_last, cat3, wl = show_unknown(cat_last), show_unknown(cat3), show_unknown(wl)
+
 with pd.ExcelWriter(OUT_DIR / "G31-04 KPI Tables.xlsx") as xw:
     pd.DataFrame({"sheet": ["KPI1_OOS_rate", "KPI2_by_week", "KPI2_categories_latest", "KPI3_demand_unavail", "KPI3_by_category",
-                            "KPI4_rule_by_week", "KPI4_rule_by_split", "Watchlist", "Reconcile"],
+                            "KPI4_rule_by_week", "KPI4_rule_by_split", "Watchlist", "Reconcile",
+                            "Data_dictionary", "Cleaning_log"],
                   "what": ["Out-of-stock rate of active items, each snapshot", "High-risk category count per prediction week (observed rate)",
                            "Categories for 6 to 13 Sep: observed stock-out rate, demand-weighted risk, tier",
                            "Share of views+add-to-carts that go to unavailable items, each snapshot",
                            "Same share by category, snapshot 13 Sep", "Simple rule baseline: TP/FP/FN/TN, recall, precision, F1 per week",
                            "Same, pooled per split (train/validate/test)", "Top 50 in-stock items with a recent status change by demand, 13 Sep",
-                           "Script result vs the numbers written in the proposal"]}).to_excel(xw, sheet_name="README", index=False)
+                           "Script result vs the numbers written in the proposal",
+                           "Columns we use: type, meaning, example, why (written by step 5)",
+                           "Rows and columns before and after each cleaning step (written by step 5)"]}).to_excel(xw, sheet_name="README", index=False)
     k1.to_excel(xw, sheet_name="KPI1_OOS_rate", index=False); k2w.to_excel(xw, sheet_name="KPI2_by_week", index=False)
     cat_last.to_excel(xw, sheet_name="KPI2_categories_latest", index=False); k3.to_excel(xw, sheet_name="KPI3_demand_unavail", index=False)
     cat3.to_excel(xw, sheet_name="KPI3_by_category", index=False); k4.to_excel(xw, sheet_name="KPI4_rule_by_week", index=False)
