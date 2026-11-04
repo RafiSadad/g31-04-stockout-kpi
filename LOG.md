@@ -15,19 +15,23 @@ reuse them and rerun them if something breaks.
 |---|---|---|---|---|
 | 1 | `01_extract_properties.py` | item_properties part 1 and 2 (20,275,902 rows) | `work/item_props_small.csv.gz` (2,291,853 rows) | Reads in chunks of 2M rows and keeps only `property` = `available` (1,503,639 rows) and `categoryid` (788,214 rows). Needed because the full files do not fit comfortably in memory as strings. |
 | 2 | `02_explore_snapshots.py` | step 1 output, events | printed only | Finds the snapshot dates and checks coverage. Confirms 18 dates, 21 Jun missing, 417,053 items, 1,407,580 visitors. |
-| 3 | `03_build_kpis.py` | step 1 output, events | `work/modelling_table.csv.gz`, `outputs/G31-04 KPI Tables.xlsx` | Builds the weekly item table and all KPI tables (below). |
-| 4 | `docs/data_flow.mmd` | none | `docs/data_flow.png` | `mmdc -i docs/data_flow.mmd -o docs/data_flow.png -w 2400 -b white -s 2` |
+| 3 | `03_build_kpis.py` | step 1 output, events | `work/modelling_table.csv.gz`, `work/item_week.csv.gz`, `outputs/G31-04 KPI Tables.xlsx` | Builds the weekly item table and all KPI tables (below). Fills missing category with "Unknown". `item_week` = all active items per snapshot (category, demand), input for step 4. |
+| 4 | `04_demand_features.py` | step 3 and step 1 output, events | `work/modelling_table_features.csv.gz` | Adds 9 demand features to the modelling table (section 8). Same rows, more columns. |
+| 5 | `05_docs.py` | outputs of steps 1 to 4, small parts of the raw CSVs | `docs/data_dictionary.md`, `docs/cleaning_log.md`, sheets `Data_dictionary` and `Cleaning_log` in the xlsx | Writes the data dictionary (text from `scripts/dictionary_spec.py`, example values from the data) and the cleaning log. Does not touch the other sheets. |
+| 6 | `docs/data_flow.mmd` | none | `docs/data_flow.png` | `mmdc -i docs/data_flow.mmd -o docs/data_flow.png -w 2400 -b white -s 2` |
 
 ## 3. Definitions used in step 3 (from the proposal, sections 1.2 and 2.2)
 - **Snapshot**: one of the 18 weekly dates where `available` was recorded (10 May to 13 Sep 2015, 21 Jun missing).
 - **Status of an item at a snapshot**: the last known `available` value at or before that snapshot (forward fill across snapshots). 1 = in stock, 0 = out of stock. This reading of `available` is still an assumption (proposal 2.1).
 - **Active**: at least one event (view, addtocart, transaction) in the 7 days up to and including the snapshot.
 - **Demand**: views + add-to-carts in the same 7 days. Windows of 28 days are also stored (`*_4w` columns).
-- **Category**: last known `categoryid` at or before the snapshot.
+- **Category**: last known `categoryid` at or before the snapshot. If there is none, the category is **"Unknown"** (code `cat = -1`, flag `cat_missing = 1`).
+  This happens when the item never has a `categoryid`, or when its first `categoryid` is recorded after the snapshot. We do not fill backwards
+  from later records, because that would use information from the future. (Added 4 Nov 2026, see section 8.)
 - **Label**: 1 if the item is out of stock at the snapshot exactly 7 days later. Weeks whose next snapshot is not 7 days away are skipped (14 Jun, because 21 Jun is missing; 13 Sep, because it is the last date). This leaves 16 prediction weeks: 10 train (10 May to 26 Jul), 3 validate (2 to 16 Aug), 3 test (23 Aug to 6 Sep).
 - **Eligible rows (modelling table)**: items in stock and active at the snapshot.
 - **KPI 1**: among active items with a known status, share with status 0.
-- **KPI 2**: for each prediction week, among eligible rows, per category: eligible items, observed stock-outs, observed stock-out rate, and the demand-weighted rate = 100 x sum(demand x outcome) / sum(demand). Only categories with at least 20 eligible items are ranked. High = top 10% by the observed stock-out rate (rounded count), Medium = next 20%, Low = rest. The model probability will replace the observed outcome once a model exists. The sheet `KPI2_categories_latest` is the week 6 to 13 Sep.
+- **KPI 2**: for each prediction week, among eligible rows, per category: eligible items, observed stock-outs, observed stock-out rate, and the demand-weighted rate = 100 x sum(demand x outcome) / sum(demand). Only categories with at least 20 eligible items are ranked. "Unknown" is never ranked and does not count in the eligible or high-risk numbers, because it is not a real category the Head of Inventory can act on. It is shown as its own row (tier "Unknown category (not ranked)") and its item count per week is in the column `unknown_category_items` of `KPI2_by_week`. High = top 10% by the observed stock-out rate (rounded count), Medium = next 20%, Low = rest. The model probability will replace the observed outcome once a model exists. The sheet `KPI2_categories_latest` is the week 6 to 13 Sep.
 - **KPI 3**: share of views + add-to-carts in the 7 days that went to items with status 0 at the snapshot. Items with no known status stay in the denominator only.
 - **KPI 4 (rule baseline, no model yet)**: predict stock-out if the item changed status in the last 4 snapshot steps. Confusion counts, recall, precision, F1 per week and pooled per split. PR-AUC is not computed because a yes/no rule has no probability. It will be added with the models.
 - **Watchlist**: top 50 in-stock active items on 13 Sep with at least one status change in the last 4 weeks, sorted by 7-day demand. Predicted probability column is empty on purpose.
@@ -43,6 +47,8 @@ Also note: 43.5% on 13 Sep is written as 43% in the proposal, which looks like t
 ## 5. Things to remember
 - The modelling table has the stock-out label only for in-stock active items, so it is built for classification, not for KPI 1 or KPI 3 (those use all active items or all demand).
 - `category_tree.csv` is not used yet. Parent category is a model feature for later.
+- Before 4 Nov 2026 rows without a category were silently dropped by `groupby` in the per-category sheets (KPI 2 latest, KPI 3 by category) and had an empty category in the watch list. They now show as "Unknown". The KPI numbers themselves did not change (tested, section 8).
+- `demand_4w`, `demand_prev3w_avg` and `demand_trend` are less reliable for the first 3 snapshots (10, 17, 24 May): the 28-day window starts before the data (3 May), so the earlier weeks look lower than they were and the trend looks higher.
 - Early snapshots have less history, so `changes_4w` uses fewer than 4 steps for the first 4 dates.
 - KPI 2 ranks categories by the observed stock-out rate (as in the proposal mockup). The demand-weighted column is next to it for comparison, and is what the model risk score will use.
 - Dates in the xlsx are text (`YYYY-MM-DD`) on purpose so Excel does not reformat them.
@@ -55,8 +61,53 @@ Also note: 43.5% on 13 Sep is written as 43% in the proposal, which looks like t
 | `No such file work/item_props_small.csv.gz` | Run step 1 first (or `run_all.sh`). |
 | Different numbers from the table in section 4 | Check the CSV versions (row counts must be 20,275,902 properties and 2,756,101 events), and that forward fill and the 7-day window were not changed. |
 | Excel file locked | Close the xlsx in Excel, then rerun step 3. |
+| Step 4 says `No such file work/item_week.csv.gz` | Rerun step 3 (the file is new since 4 Nov 2026). |
+| Step 4 `AssertionError: row count changed` or `duplicate item-week rows` | A merge key is not unique. Check that step 3 and step 4 were run on the same data. |
+| Step 5 `dictionary_spec.py is out of date` | A column was added or removed in the modelling table. Add or remove it in `scripts/dictionary_spec.py`, then rerun step 5. |
+| Step 5 `Permission denied` or `BadZipFile` on the xlsx | The xlsx is open in Excel or was not written by step 3. Close it and rerun steps 3 and 5. |
+| `cleaning_log.csv` has old rows | Each script replaces only its own rows. Delete `work/cleaning_log.csv` and run `run_all.sh` for a clean log. |
 
 ## 7. Not done
 - No model is trained. KPI 4 uses the rule only.
 - The data flow diagram is a draft. The Data Engineer who owns the final version (Peeranat) should correct it against the real cleaning pipeline.
 - `available = 0` meaning is still unverified.
+- `docs/data_dictionary.md` and `docs/cleaning_log.md` are produced by step 5 on the real data. They were not produced in the session of 4 Nov 2026 because the raw CSVs were not available there (section 8).
+- The data flow diagram does not show step 4 (demand features), step 5 (docs) or the "Unknown" category yet.
+
+## 8. Task 4 Nov 2026: data dictionary, demand features, Unknown category, cleaning log (Rafi)
+**What was done**
+- `scripts/cleanlog.py` (new): small helper. Each script writes one row per cleaning step to `work/cleaning_log.csv`: script, step, action, table, rows and columns before and after, rows changed, note. A rerun replaces the rows of that script only.
+- Step 1 now logs the raw row counts of both files and the property filter.
+- Step 3 now logs: loading, duplicate removal for `available` and `categoryid`, the pivot to the item x snapshot matrix, forward fill (empty cells before and after), the "Unknown" fill (how many cells, split into "never has a category" and "category only known later"), the event type filter, dropping weeks without a label, and the eligibility filter.
+- Step 3, missing category: filled with "Unknown" (`cat = -1`) plus a flag `cat_missing`. Definition added in section 3. In the xlsx the code is written as the word `Unknown`.
+- Step 4 (new): demand features. Step 5 (new): data dictionary and cleaning log. `run_all.sh` runs both.
+- `config.py`: `UNKNOWN_CAT = -1` and `DOCS_DIR` (default `docs`).
+- Libraries: pandas, numpy, openpyxl only (no new ones).
+
+**Demand features (step 4)** All use events at or before the snapshot time t only. Full meaning and example values in `docs/data_dictionary.md`.
+
+| Feature | Formula | Why |
+|---|---|---|
+| `demand_4w` | views_4w + atc_4w | Monthly demand level, smoother than one week. |
+| `demand_prev3w_avg` | (demand_4w - demand_1w) / 3 | Normal weekly demand before the last week. |
+| `demand_trend` | (demand_1w + 1) / (demand_prev3w_avg + 1) | Rising demand can empty stock before it is refilled. |
+| `atc_rate_1w` | atc_1w / views_1w (0 if no views) | Buying intent per view. |
+| `buy_rate_4w` | tx_4w / views_4w (0 if no views) | How well views turn into sales. |
+| `visitors_1w` | distinct visitors with view or add-to-cart in 7 days | Broad demand vs one visitor viewing many times. |
+| `days_since_last_tx` | days from last purchase at or before t (empty if none) | Items that sold recently are more likely to run out. |
+| `cat_demand_1w` | sum of demand_1w of all active items in the category (empty for Unknown) | How busy the category is. |
+| `item_share_of_cat_demand` | demand_1w / cat_demand_1w | Main seller or small item within its category. |
+
+The existing columns of step 3 (`views_*`, `atc_*`, `tx_*`, `demand_1w`, `changes_4w`) are kept and their reasons are in the dictionary.
+
+**How it was checked.** The raw CSVs were not available in the working session, so the scripts could not be run on the real data and
+`Reconcile` was not rerun on it. Instead, the scripts were run on a synthetic test set with the same columns (made only for testing, not saved in the repo),
+once with the old step 3 and once with the new one. Result: KPI1, KPI2_by_week, KPI2_categories_latest, KPI3_demand_unavail, KPI4 (both sheets),
+Watchlist and Reconcile were identical; KPI3_by_category had the same values (only the order of categories with equal demand differed); the modelling table had the same rows and values
+(only `cat` empty -> -1 and the new `cat_missing` column). The only additions are the "Unknown" rows and the column `unknown_category_items`. Because the eligible and
+high-risk counts exclude "Unknown", the numbers 220 and 22 in Reconcile should not move. **This still has to be confirmed by running `bash run_all.sh` on the real data.**
+
+**How to rerun**: `bash run_all.sh`, or only the new parts: `python scripts/03_build_kpis.py && python scripts/04_demand_features.py && python scripts/05_docs.py`.
+Then open the `Reconcile` sheet (expect 15 OK and the known KPI3 min DIFF) and `Cleaning_log`.
+
+**What can fail**: see section 6 (last four rows). Also: step 4 reads `events.csv` with `visitorid`, which needs a bit more RAM than step 3 (one more integer column).
