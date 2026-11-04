@@ -93,9 +93,46 @@ Do not stop step 4 with Ctrl+C: it writes a large file and the file is left brok
 Helpers: `config.py` (folders, Unknown code), `cleanlog.py` (cleaning log), `dictionary_spec.py` (dictionary text).
 Libraries: pandas, numpy, openpyxl. Full details: `LOG.md`.
 
-## 6. Open points for the group
+## 6. Messages for the group
 
-- **To the Data Analyst (Sirawich):** KPI 3 range in the proposal (29 to 49%) vs script (21.9 to 48.6%); 1,180 categories in the proposal vs 1,242 in the data.
-- **To Peeranat (Data Engineer):** check the data flow diagram; decide whether a category may be filled backwards from later weeks
-  (would remove most "Unknown" rows, but uses a later record); availability-history features are his task.
-- **Not checked yet:** the meaning of `available = 0` (proposal 2.5).
+**Start here (5 minutes):** look at the [data flow diagram](docs/data_flow.png), then the [data dictionary](docs/data_dictionary.md),
+then the [cleaning log](docs/cleaning_log.md). All numbers come from the real data, run on 4 Nov 2026.
+The Excel file with every table is [outputs/G31-04 KPI Tables.xlsx](outputs/G31-04%20KPI%20Tables.xlsx) (download it, GitHub cannot show xlsx).
+
+### To Sirawich (Data Analyst, Chapter 3)
+Numbers for Chapter 3 (Data Preparation), ready to copy:
+- Cleaning steps with rows and columns before and after: [docs/cleaning_log.md](docs/cleaning_log.md) (21 steps). Short version is in [section 2](#2-key-results-from-the-real-data-4-nov-2026).
+- Columns, meaning and reason for each feature: [docs/data_dictionary.md](docs/data_dictionary.md).
+- Missing values: "Unknown" category for 883,701 item-week cells without a category yet (29,358 modelling rows);
+  30 of 1,242 category ids are not in the tree (matches proposal 2.5). Rules: [LOG.md section 3](LOG.md#3-definitions-used-in-step-3-from-the-proposal-sections-12-and-22).
+
+**Please check 2 numbers in the proposal** (details in [LOG.md section 4](LOG.md#4-check-against-the-proposal-sheet-reconcile)):
+1. KPI 3 range: proposal says 29 to 49%, the script gives 21.9% (10 May) to 48.6% (2 Aug). Without the first two weeks the minimum is 30.2%.
+   Either change the text to "22 to 49%" or explain the rule used for the early weeks.
+2. Number of categories: proposal 2.1 says 1,180, the data has 1,242 distinct category ids in item_properties. How was 1,180 counted?
+
+### To Peeranat (Data Engineer)
+1. Please check the [data flow diagram](docs/data_flow.png) (source to edit: [docs/data_flow.mmd](docs/data_flow.mmd)) against your cleaning pipeline. You own the final version.
+2. **Decision needed:** an item's category is often recorded only some weeks after its stock status. 90% of the 29,358 "Unknown" rows are in the
+   first 5 weeks. We could fill the category backwards from the first known value. This removes most "Unknown" rows, but uses a record from
+   after the snapshot. It is only safe if an item's category does not change. Please decide together with the Data Scientists.
+3. Your features (weeks since last status change, number of changes) can be added to the same table. Only `changes_4w` exists now (used by the KPI 4 rule).
+4. The meaning of `available = 0` (proposal 2.5) is still to be confirmed.
+
+### To the Data Scientists (EDA part 1 and 2, models)
+- **Table to use:** `work/modelling_table_features.csv.gz` (283,849 rows x 26 columns, one row = one item in one week). It is not on GitHub;
+  make it on your laptop with `run_all.ps1` ([how to run](#4-how-to-run)). Column meanings: [data dictionary](docs/data_dictionary.md).
+- **Target:** `y_next_out` (1 = out of stock at the next weekly snapshot). 29,502 positives (10.4%).
+- **Time split:** use the column `snapshot`. Train 2015-05-10 to 2015-07-26, validate 2015-08-02 to 2015-08-16, test 2015-08-23 to 2015-09-06.
+- **Do not use as features:** `itemid`, `snapshot`, `y_next_out`, and `state` and `active` (always 1 and true in this table).
+- **Leakage check (EDA part 2):** every feature uses only data at or before the snapshot time t. The label comes from the snapshot at t + 7 days.
+  Details: [LOG.md section 8](LOG.md#8-task-4-nov-2026-data-dictionary-demand-features-unknown-category-cleaning-log-rafi).
+- **Things to handle before training:**
+  - `days_since_last_tx` is empty in 230,343 rows (81%, no purchase before t). Fill it (for example with a large number) and add a flag.
+  - `cat_demand_1w` and `item_share_of_cat_demand` are empty for the 29,358 "Unknown" category rows.
+  - `atc_rate_1w` (max 26) and `buy_rate_4w` (max 3) have a few very large values. Cap them for Logistic Regression.
+  - `cat` and `parent_cat` are codes, not quantities. -1 means "Unknown". Treat them as categories, not as numbers.
+  - 4-week features are partial in the first 3 weeks (data starts on 3 May).
+
+### Questions about this repository
+Ask Rafi (Member 5). Full log of what was done and how to rerun: [LOG.md](LOG.md).
