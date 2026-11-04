@@ -149,4 +149,4 @@ do not stop it with Ctrl+C, or `modelling_table_features.csv.gz` is left half wr
   where the CSVs are (not on GitHub, read from the local disk through `DATA_DIR`), how to run, open points.
 - `run_all.ps1` (new): runs steps 1 to 5 on Windows PowerShell. Default `DATA_DIR` is `..` (the folder above the repository, where Rafi keeps the CSVs).
   It stops with a clear message if one of the 4 CSVs is missing, or if a step fails.
-  Rerun: `powershell -ExecutionPolicy Bypass -File run_all.ps1`. Not tested in the working session (no PowerShell there); `run_all.sh` does the same with bash.
+  Rerun: `powershell -ExecutionPolicy Bypass -File run_all.ps1`. Tested by Rafi on Windows on 4 Nov 2026: all 5 steps ran, Reconcile 15 OK and the known KPI3 min DIFF, same numbers as the run before. `run_all.sh` does the same with bash.
