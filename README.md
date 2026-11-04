@@ -26,7 +26,23 @@ Commit history: commits by "Rafi Sadad Ar-Rabbani" were made on Rafi's laptop (r
 were made with the AI coding assistant Claude Code, working for Rafi and checked by him. Everything was run on the real
 data by Rafi on 4 Nov 2026.
 
-## 2. Key results (from the real data, 4 Nov 2026)
+## 1b. Progress 1 checklist (12 Nov 2026, Q&A to the Data Engineer)
+
+What the course guideline (section 5 and 8) asks for Progress 1, and its status for the Data Engineer part:
+
+| Guideline item | Status | File |
+|---|---|---|
+| Data dictionary of the columns you use | Done | [docs/data_dictionary.md](docs/data_dictionary.md) |
+| Data quality issues, and each cleaning step with row and column counts before and after | Done | [docs/cleaning_log.md](docs/cleaning_log.md), [LOG.md](LOG.md) |
+| Feature engineering steps and the reason for each | Done (demand features) | [docs/data_dictionary.md](docs/data_dictionary.md), [scripts/04_demand_features.py](scripts/04_demand_features.py) |
+| Data flow diagram from raw data to model-ready data | Done (draft, Peeranat to check) | [docs/data_flow.png](docs/data_flow.png) |
+| Initial EDA (distributions, correlations, target balance) | Data Scientists | uses `work/modelling_table_features.csv.gz` |
+| Submission: cleaned dataset (CSV) | **To do** | planned: `G31-04_Progress1_CleanedData.csv` (too big for GitHub, upload to LEB2) |
+| Submission: notebook (.ipynb and PDF with outputs) | **To do** | planned: `G31-04_Progress1_DataPrep.ipynb` |
+
+Rule 7.4: every number in the slides and report must match the code. Use the numbers in the `Reconcile` and `Cleaning_log` sheets.
+
+ (from the real data, 4 Nov 2026)
 
 - **Reconcile:** 15 of 16 numbers in the proposal match the scripts. The one difference is the KPI 3 minimum
   (proposal 29%, script 21.9% on 10 May). See `LOG.md` section 4.
