@@ -137,5 +137,9 @@ The first part (section 8) only handled items with no category at all.
 **How to rerun.** `category_tree.csv` must be in `DATA_DIR` (it already is in the course zip). Then steps 3, 4 and 5 (steps 1 and 2 do not change):
 `python scripts/03_build_kpis.py`, `python scripts/04_demand_features.py`, `python scripts/05_docs.py`. Check Reconcile (15 OK + the known DIFF).
 
-**What can fail.** `FileNotFoundError: category_tree.csv` if the file is not in `DATA_DIR`. If the proposal number "30 category IDs not in the tree" is not
-what the cleaning log shows, check whether the proposal counted all items or only active ones.
+**Result on the real data (Rafi, 4 Nov 2026).** Reconcile: 15 OK and the known KPI3 min DIFF. 30 of the 1,242 `categoryid` values in item_properties
+are not in `category_tree.csv`, which matches proposal 2.5. None of them appears in the modelling table (0 rows), so in practice `cat_in_tree = 0` only
+for the 29,358 Unknown rows. 5 modelling rows have a top-level category (own parent). Modelling table 283,849 x 17, feature table 283,849 x 26.
+
+**What can fail.** `FileNotFoundError: category_tree.csv` if the file is not in `DATA_DIR`. Step 4 writes a large gzip file and can take a few minutes;
+do not stop it with Ctrl+C, or `modelling_table_features.csv.gz` is left half written (then rerun step 4).
