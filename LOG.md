@@ -150,3 +150,9 @@ do not stop it with Ctrl+C, or `modelling_table_features.csv.gz` is left half wr
 - `run_all.ps1` (new): runs steps 1 to 5 on Windows PowerShell. Default `DATA_DIR` is `..` (the folder above the repository, where Rafi keeps the CSVs).
   It stops with a clear message if one of the 4 CSVs is missing, or if a step fails.
   Rerun: `powershell -ExecutionPolicy Bypass -File run_all.ps1`. Tested by Rafi on Windows on 4 Nov 2026: all 5 steps ran, Reconcile 15 OK and the known KPI3 min DIFF, same numbers as the run before. `run_all.sh` does the same with bash.
+
+## 11. Dataset overview picture (5 Nov 2026)
+- `docs/dataset_schema.png`: one slide-sized picture (1600 x 900, rendered at 2x) of the 3 source files, their row counts, key columns,
+  join keys (`itemid`, `categoryid`) and the modelling table. Every number comes from the script outputs of 4 Nov (sections 8 and 9).
+- Source: `docs/dataset_schema.html` (plain HTML and CSS). To change it, edit the HTML and take a new screenshot, for example with
+  Playwright: open the file at 1600 x 900 and save a PNG. If the scripts change any count, update the HTML by hand.

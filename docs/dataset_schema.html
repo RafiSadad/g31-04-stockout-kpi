@@ -1,0 +1,47 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{margin:0;background:#eef5f1;font-family:Inter,Helvetica,Arial,sans-serif;color:#2d3340}
+.wrap{width:1600px;height:900px;box-sizing:border-box;padding:48px 64px;position:relative}
+.kick{font-size:20px;letter-spacing:2px;font-weight:700;color:#5b6170}
+h1{font-size:46px;margin:6px 0 34px;color:#3d4454}
+.box{position:absolute;background:#fff;border:2px solid #c9cfd9;border-radius:10px;overflow:hidden}
+.hd{background:#5f6a86;color:#fff;font-weight:700;font-size:23px;padding:10px 16px}
+.hd.main{background:#c7556a}
+.bd{padding:12px 16px;font-size:20px;line-height:1.55}
+.k{color:#2d3340;font-weight:600}.m{color:#8a909c}
+.note{font-size:17px;color:#5b6170;margin-top:6px;line-height:1.4}
+.chip{position:absolute;background:#2d3340;color:#fff;font-size:17px;padding:4px 10px;border-radius:14px}
+svg{position:absolute;left:0;top:0}
+.src{position:absolute;left:64px;bottom:30px;font-size:17px;color:#7a808c}
+</style></head><body><div class="wrap">
+<div class="kick">DATA ENGINEER · DATASET S1</div>
+<h1>S1: 417,053 items and 2.76M customer events in three files</h1>
+<svg width="1600" height="900"><g stroke="#5f6a86" stroke-width="3" fill="none">
+<line x1="500" y1="330" x2="610" y2="330"/>
+<line x1="282" y1="444" x2="282" y2="640"/>
+<path d="M1000 330 H1080"/><path d="M504 720 H1318 V518"/>
+</g><g fill="#5f6a86"><polygon points="1080,320 1100,330 1080,340"/><polygon points="1308,518 1318,499 1328,518"/></g></svg>
+<div class="box" style="left:64px;top:150px;width:436px">
+ <div class="hd">item_properties · 20,275,902</div>
+ <div class="bd"><span class="m">part 1 + part 2</span><br><span class="k">itemid</span> · timestamp<br>property · value<br>
+ <span class="k">available</span>: 1,503,639 rows<br>&nbsp;&nbsp;18 weekly dates (21 Jun missing)<br>
+ <span class="k">categoryid</span>: 788,214 rows
+ <div class="note">Other properties are coded, not used</div></div></div>
+<div class="chip" style="left:518px;top:298px">itemid</div>
+<div class="box" style="left:610px;top:150px;width:390px">
+ <div class="hd">events · 2,756,101</div>
+ <div class="bd"><span class="k">itemid</span> · visitorid · timestamp<br>event: view 2,664,312<br>&nbsp;&nbsp;add-to-cart 69,332<br>&nbsp;&nbsp;purchase 22,457<br><span class="m">transactionid (not used)</span>
+ <div class="note">1,407,580 visitors · 235,061 items</div></div></div>
+<div class="chip" style="left:296px;top:528px">categoryid</div><div class="chip" style="left:780px;top:688px;background:#c7556a">build weekly table (scripts, steps 1 to 4)</div>
+<div class="box" style="left:64px;top:640px;width:436px">
+ <div class="hd">category_tree · 1,669</div>
+ <div class="bd"><span class="k">categoryid</span> · parentid
+ <div class="note">25 top-level categories, up to 6 levels</div></div></div>
+<div class="box" style="left:1100px;top:150px;width:436px;border-color:#c7556a">
+ <div class="hd main">modelling table · 283,849</div>
+ <div class="bd">One row = one in-stock, active item in one week (16 weeks)<br>
+ <span class="k">Target</span>: out of stock next week<br>&nbsp;&nbsp;29,502 yes (10.4%)<br>
+ <span class="k">Features</span>: demand (1 and 4 weeks), status changes, category and parent<br>
+ 26 columns
+ <div class="note">Missing category: "Unknown"<br>(29,358 rows)</div></div></div>
+<div class="src">Source: provided by the instructor (course Dataset S1, item_properties_part1.zip, 4 CSV files). 3 May to 18 Sep 2015. Counts from our scripts.</div>
+</div></body></html>

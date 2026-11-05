@@ -16,6 +16,7 @@ and the availability-history features (Peeranat, Data Engineer) are done by the 
 |---|---|---|
 | This week: prepare the data tables for the 4 KPIs | 4 KPI tables, a watch list, and a check against every number in the proposal | `outputs/G31-04 KPI Tables.xlsx` (sheets `KPI1` to `KPI4`, `Watchlist`, `Reconcile`), `scripts/03_build_kpis.py` |
 | This week: data flow diagram, together with Member 2 | Diagram from the raw files to the dashboard | `docs/data_flow.png`, source `docs/data_flow.mmd` |
+| Dataset overview slide (files, row counts, key columns, links) | One picture of the 3 source files and the modelling table, all counts from the scripts | `docs/dataset_schema.png`, source `docs/dataset_schema.html` |
 | Next week: data dictionary of the columns we use | Type, meaning, real example value and reason for every column of the 3 raw files and the modelling table | `docs/data_dictionary.md`, sheet `Data_dictionary`; text in `scripts/dictionary_spec.py`, made by `scripts/05_docs.py` |
 | Next week: customer demand features and the reason for each | 9 new features (trend, rates, visitors, last purchase, category demand), using past data only | `scripts/04_demand_features.py`, reasons in `docs/data_dictionary.md` and `LOG.md` section 8 |
 | Next week: fix missing category values | "Unknown" category when an item has no category yet, and parent category from `category_tree.csv` ("Unknown" if the category is not in the tree) | `scripts/03_build_kpis.py`, rules in `LOG.md` section 3 |
