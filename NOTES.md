@@ -35,6 +35,13 @@ Done and on `main`:
 - Meaning of `available = 0`: Peeranat's task.
 - Which Data Scientist does which task: report 2.6 and slides disagree. Not Rafi's decision.
 
+## 3b. Decisions taken
+- 5 Nov 2026: target user stays **Head of Inventory**. Sales and a conversion (CRO) manager were considered and rejected: no prices or revenue,
+  no page, traffic or session data, and changing the user would mean a new target, a new table and new KPIs after the proposal.
+  Answer if asked: we have no stock quantities, only a weekly available flag, so we predict "becomes unavailable next week", not "how many units
+  to order" (out of scope). KPI 3 (about 43% of interest goes to unavailable items) also helps a sales or conversion team.
+- Idea for Progress 1 EDA (not started): does the add-to-cart per view ratio drop when `available = 0`? Also helps to check what `available = 0` means.
+
 ## 4. Team and Discord
 Members (proposal): Sirawich Moonmangmee (Leader, Data Analyst), Peeranat Charungrattanapong (Data Engineer),
 Pakkapon Rattanaumpawan (Data Scientist), Arnakorn Khemtaronon (Data Scientist), Rafi Sadad Ar Rabban (Data Engineer, Member 5).
