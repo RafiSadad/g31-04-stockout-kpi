@@ -4,9 +4,10 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 pip install -q -r requirements.txt
-python scripts/01_extract_properties.py
+python scripts/01_extract_raw.py
 python scripts/02_explore_snapshots.py
 python scripts/03_build_kpis.py
 python scripts/04_demand_features.py
 python scripts/05_docs.py
+python scripts/06_export_compare.py
 # optional: mmdc -i docs/data_flow.mmd -o docs/data_flow.png -w 2400 -b white -s 2

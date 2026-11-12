@@ -1,4 +1,6 @@
-data_raw/
+data_raw/*
+!data_raw/README.md
+outputs/*.csv
 work/
 *.zip
 *.csv.gz
