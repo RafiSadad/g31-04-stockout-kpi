@@ -35,6 +35,8 @@ Done and on `main`:
   Explanation and fixes are in `LOG.md` section 12. The group has two pipelines with slightly different numbers; the slides use the other one
   (`clean_data.py`, `build_features.py`, owner to confirm). The group must choose ONE source of numbers.
 - Step 7 (`07_charts.py`) makes all charts in `outputs/charts/`. English guide for the group: `HOW_TO_USE.md`.
+- Drive folders (links are the notebook defaults): raw CSVs https://drive.google.com/drive/folders/1L2N2pFDTrI8cf2VQQMiS9PuqRIN0EuIq ,
+  results `G31-04-OUTPUT` https://drive.google.com/drive/folders/1N7ZhSxAoZrTyzmRgChgoF7F6Fel9pWrm (both owned by Rafi).
 - Next: Rafi runs the notebook on the real data, then checks `outputs/compare_progress1.csv`, Reconcile and the charts.
 
 ## 3. Open decisions (waiting for the group)

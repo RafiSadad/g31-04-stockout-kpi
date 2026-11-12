@@ -7,12 +7,13 @@ number by hand. If something must change, change the script, run everything agai
 
 ## 1. Run everything in Google Colab (recommended)
 
-### 1.1 Before the first run (once)
-1. Open the group Google Drive folder with the raw data:
-   https://drive.google.com/drive/folders/1-_Qns7aF7vowcg9gIa5i7x6i3qTCtGDm
-2. Right-click the folder and choose **Organize > Add shortcut** (or **Add shortcut to Drive**), then pick **My Drive**.
-   Colab can only see files that are in your own Drive.
-3. Remember the folder name as it appears in My Drive, for example `G31-04`.
+### 1.1 Where the data and the results are
+The notebook works with **Google Drive folder links**. Cell 1 already has the group folders:
+- `RAW_DRIVE_DIR`: folder with the 4 raw CSV files (`item_properties_part1.csv`, `item_properties_part2.csv`, `events.csv`, `category_tree.csv`)
+- `SAVE_DRIVE_DIR`: folder `G31-04-OUTPUT` for the results
+
+You need access to both folders with the Google account you use in Colab. To use other folders, paste their links into
+cell 1. A path such as `/content/drive/MyDrive/G31-04` also works (then Drive is mounted instead).
 
 ### 1.2 Open the notebook
 - If the repository is public, open this link:
@@ -21,31 +22,31 @@ number by hand. If something must change, change the script, run everything agai
   **File > Upload notebook**. Also add a GitHub token as a Colab secret (see section 4).
 
 ### 1.3 Run it
-1. In **cell 1 (Settings)**, set `RAW_DRIVE_DIR` to your folder, for example `/content/drive/MyDrive/G31-04`.
-   The folder may hold the 4 CSV files or a zip with them. Sub-folders are searched too.
+1. Check cell 1 (Settings). The folder links are already filled in. The raw folder may hold the 4 CSV files or a zip with them.
 2. Choose **Runtime > Run all**.
-3. Allow Colab to access your Google Drive when it asks.
+3. A Google sign-in window opens: choose the account that can open both folders and allow access.
+   Cell 3 then downloads the 4 CSVs (about 1 GB, 1 to 3 minutes) and checks that each file has the same size as on Drive.
 4. Wait about 5 to 10 minutes. Each step prints what it did. If a step fails, the notebook stops and shows the error (see section 5).
 
 ### 1.4 What the notebook does
 | Cell | What happens |
 |---|---|
 | 1. Settings | Paths for the raw data and for the results |
-| 2. Drive and GitHub | Connects Google Drive and clones (or updates) this repository |
-| 3. Raw files | Copies the 4 CSVs into `data_raw/` inside the repository (extracts them from a zip if needed) |
+| 2. Drive and GitHub | Signs in to Google Drive and clones (or updates) this repository |
+| 3. Raw files | Downloads the 4 CSVs into `data_raw/` inside the repository (extracts them from a zip if needed) and checks the file sizes |
 | 4. Libraries | Installs `requirements.txt` and prints the versions used |
 | Steps 1 to 7 | Runs the numbered scripts in `scripts/` (table in section 3) |
 | Results | Shows the cleaning log, Reconcile, the comparison with the Progress 1 slides, the feature summary, the diagrams and all charts |
-| Save | Copies the results to Google Drive, folder `G31-04_outputs` |
+| Save | Uploads the results to the results folder (`G31-04-OUTPUT`). A file with the same name is replaced, so there are no duplicates. Charts go into a `charts` sub-folder |
 | Optional push | Commits the updated docs, workbook and charts to GitHub |
 
 ### 1.5 Files for the course submission
 | File | Where to find it after the run | Submit as |
 |---|---|---|
-| Cleaned dataset (CSV) | Drive: `G31-04_outputs/G31-04_Progress1_CleanedData.csv` | `G31-04_Progress1_CleanedData.csv` |
+| Cleaned dataset (CSV) | Drive: `G31-04-OUTPUT/G31-04_Progress1_CleanedData.csv` | `G31-04_Progress1_CleanedData.csv` |
 | Notebook (.ipynb) | Colab: **File > Download > Download .ipynb** | `G31-04_Progress1_DataPrep.ipynb` |
 | Notebook PDF with outputs | Colab: **File > Print > Save as PDF** (after the run, so the outputs are inside) | `G31-04_Progress1_DataPrep.pdf` |
-| Charts for slides and report | Drive: `G31-04_outputs/charts/*.png` | insert into the slides and report |
+| Charts for slides and report | Drive: `G31-04-OUTPUT/charts/*.png` | insert into the slides and report |
 
 ## 2. How to read the results
 
@@ -107,7 +108,9 @@ Needs Python 3.12 or newer and about 4 GB RAM.
 ## 6. If something goes wrong
 | Message | What to do |
 |---|---|
-| `FileNotFoundError: Not found in ...: [...]` | `RAW_DRIVE_DIR` is wrong, or the Drive folder is not in My Drive. Check the path in the Colab file browser (folder icon on the left) |
+| `FileNotFoundError: Not found in ...: [...]` | The raw folder link in cell 1 is wrong, or the 4 files have other names. With a path: the folder is not in My Drive |
+| `HttpError 404` or `403` in cell 3 or in the save cell | The Google account used in Colab cannot open that folder. Ask the owner to share it with that account (editor for the results folder) |
+| `SIZE DIFFERS FROM DRIVE` in cell 3 | The download was cut off. Delete `data_raw/` in the Colab file browser and run cell 3 again |
 | `git clone` asks for a username or password | The repository is private. Add the `GITHUB_TOKEN` secret (section 4) |
 | `RuntimeError: 0X_... failed` | Read the error printed above it. Run all again once; if it fails again, send the error to Rafi |
 | Colab disconnected | Colab stops after some idle time. Run all again (about 5 to 10 minutes) |

@@ -213,3 +213,16 @@ because a duplicate event never makes an item active on its own.
 
 **What can fail.** `skip 03_top_categories.png`: no category has 20 or more eligible items in the latest week (only with test data).
 `ModuleNotFoundError: matplotlib`: run `pip install -r requirements.txt`.
+
+## 14. Notebook works with Google Drive folder links (12 Nov 2026)
+- Rafi put the raw CSVs in a Drive folder (id `1L2N2pFDTrI8cf2VQQMiS9PuqRIN0EuIq`, 4 files: item_properties_part1.csv 484,315,749 bytes,
+  item_properties_part2.csv 408,929,907 bytes, events.csv 94,237,913 bytes, category_tree.csv 14,454 bytes) and made a results folder
+  `G31-04-OUTPUT` (id `1N7ZhSxAoZrTyzmRgChgoF7F6Fel9pWrm`). Sizes were read from Drive, not computed.
+- Notebook cell 1: `RAW_DRIVE_DIR` and `SAVE_DRIVE_DIR` take a folder link (or a path). Both links are now the defaults.
+- With links, cell 2 signs in with the Colab user's Google account (`google.colab.auth`) and uses the Drive API (`googleapiclient`,
+  preinstalled in Colab). Cell 3 downloads the 4 files (100 MB chunks) and checks each size against Drive. The save cell uploads the
+  results; a file with the same name is updated (new version), not duplicated; charts go into a `charts` sub-folder (created if missing).
+- Tested: path mode, full notebook on synthetic data; link mode, with a fake Drive service (download, size check, upload, replace,
+  sub-folder, second save without duplicates). The real Drive API calls run only in Colab and were not run here.
+- What can fail: `HttpError 403/404` when the Colab account has no access to a folder; a cut-off download (cell 3 then shows
+  `SIZE DIFFERS FROM DRIVE`; delete `data_raw/` and run cell 3 again).
