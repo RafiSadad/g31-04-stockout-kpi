@@ -13,12 +13,13 @@ reuse them and rerun them if something breaks.
 ## 2. Steps
 | Step | Script | Input | Output | What it does |
 |---|---|---|---|---|
-| 1 | `01_extract_properties.py` | item_properties part 1 and 2 (20,275,902 rows) | `work/item_props_small.csv.gz` (2,291,853 rows) | Reads in chunks of 2M rows and keeps only `property` = `available` (1,503,639 rows) and `categoryid` (788,214 rows). Needed because the full files do not fit comfortably in memory as strings. |
-| 2 | `02_explore_snapshots.py` | step 1 output, events | printed only | Finds the snapshot dates and checks coverage. Confirms 18 dates, 21 Jun missing, 417,053 items, 1,407,580 visitors. |
+| 1 | `01_extract_raw.py` (was `01_extract_properties.py`) | item_properties part 1 and 2 (20,275,902 rows), events | `work/item_props_small.csv.gz` (2,291,853 rows), `work/events_clean.csv.gz` | Reads in chunks of 2M rows and keeps only `property` = `available` (1,503,639 rows) and `categoryid` (788,214 rows). Removes exact duplicate events (since 12 Nov 2026, section 12). Starts a new cleaning log. |
+| 2 | `02_explore_snapshots.py` | step 1 outputs | printed only | Finds the snapshot dates and checks coverage. Confirms 18 dates, 21 Jun missing, 417,053 items, 1,407,580 visitors. |
 | 3 | `03_build_kpis.py` | step 1 output, events | `work/modelling_table.csv.gz`, `work/item_week.csv.gz`, `outputs/G31-04 KPI Tables.xlsx` | Builds the weekly item table and all KPI tables (below). Fills missing category with "Unknown". `item_week` = all active items per snapshot (category, demand), input for step 4. |
 | 4 | `04_demand_features.py` | step 3 and step 1 output, events | `work/modelling_table_features.csv.gz` | Adds 9 demand features to the modelling table (section 8). Same rows, more columns. |
 | 5 | `05_docs.py` | outputs of steps 1 to 4, small parts of the raw CSVs | `docs/data_dictionary.md`, `docs/cleaning_log.md`, sheets `Data_dictionary` and `Cleaning_log` in the xlsx | Writes the data dictionary (text from `scripts/dictionary_spec.py`, example values from the data) and the cleaning log. Does not touch the other sheets. |
-| 6 | `docs/data_flow.mmd` | none | `docs/data_flow.png` | `mmdc -i docs/data_flow.mmd -o docs/data_flow.png -w 2400 -b white -s 2` |
+| 6 | `06_export_compare.py` | step 4 output, cleaning log, xlsx | `outputs/G31-04_Progress1_CleanedData.csv`, `outputs/compare_progress1.csv` | Exports the cleaned modelling table as CSV and compares our counts with the Progress 1 slides (section 12). |
+| 7 | `docs/data_flow.mmd` | none | `docs/data_flow.png` | `mmdc -i docs/data_flow.mmd -o docs/data_flow.png -w 2400 -b white -s 2` |
 
 ## 3. Definitions used in step 3 (from the proposal, sections 1.2 and 2.2)
 - **Snapshot**: one of the 18 weekly dates where `available` was recorded (10 May to 13 Sep 2015, 21 Jun missing).
@@ -156,3 +157,36 @@ do not stop it with Ctrl+C, or `modelling_table_features.csv.gz` is left half wr
   join keys (`itemid`, `categoryid`) and the modelling table. Every number comes from the script outputs of 4 Nov (sections 8 and 9).
 - Source: `docs/dataset_schema.html` (plain HTML and CSS). To change it, edit the HTML and take a new screenshot, for example with
   Playwright: open the file at 1600 x 900 and save a PNG. If the scripts change any count, update the HTML by hand.
+
+## 12. Clean version run in Google Colab (12 Nov 2026)
+**Why.** At Progress 1 the lecturer asked why the numbers were not consistent (20 million rows, then 6 million). Two things were found:
+1. The chain of counts was right but was not explained. Item properties are in a long format (one row = one property value of one item at
+   one time; 1,104 different properties), so the counts go 20,275,902 -> 2,291,853 (2 properties) -> first record and changes only
+   -> one row per item and week (417,053 items x 18 snapshots minus the weeks before the first status). The number of rows goes up in the
+   last step because the format changes, not because data is added. Step 3 now logs both counts, so the chain is in the cleaning log.
+2. The group had two pipelines. The Progress 1 slides come from another pipeline (`clean_data.py`, `build_features.py`, not in this repository),
+   with slightly different counts (for example 282,708 vs 283,849 modelling rows). It removes 460 duplicate events and uses site time (UTC+3).
+
+**What was done**
+- `01_extract_raw.py` (renamed from `01_extract_properties.py`) also removes exact duplicate events (all 5 columns equal) and writes
+  `work/events_clean.csv.gz`. Steps 2, 3 and 4 read the cleaned events. Step 1 also deletes the old cleaning log, so every full run has one clean log.
+- `03_build_kpis.py`: two new cleaning log rows, "count first record and each status change (check only)" and "item-weeks with a known status".
+- `03_build_kpis.py`, Reconcile: **bug fixed**. The old check used one tolerance (0.51) for all rows, so a recall of 0.38 would have shown OK
+  against 0.42. Now each row has its own tolerance, shown in the new column `tolerance`: half of the last digit written in the proposal
+  (58 -> 0.5, 10.4 -> 0.05, 0.42 -> 0.005); counts must be equal. On the 4 Nov run all rows were inside the new tolerances too.
+- `06_export_compare.py` (new): writes `outputs/G31-04_Progress1_CleanedData.csv` (submission file, not in git) and `outputs/compare_progress1.csv`
+  (our counts next to the Progress 1 slide numbers, "same" or "DIFF"). The slide numbers are typed from the slide PDF; ours come from the run.
+- `notebooks/G31-04_DataPrep_Colab.ipynb` (new): clones the repository, copies the 4 CSVs from Google Drive into `data_raw/` (or extracts them
+  from a zip), installs the libraries, runs steps 1 to 6, shows the cleaning log, Reconcile, the slide comparison, the feature summary and the
+  diagrams, and saves the results to Google Drive. Optional last cell pushes the docs and workbook to GitHub with a `GITHUB_TOKEN` Colab secret.
+- `data_raw/README.md` (new): the folder for the raw CSVs is now in the repository (the CSVs stay ignored by git). `run_all.ps1` uses `data_raw/`
+  when it holds the files, else the folder above. `outputs/*.csv` is ignored by git.
+- Timestamps stay in UTC (section 1). Site time (UTC+3) is not used; this is one known reason for differences with the other pipeline.
+- Tested on the synthetic test set only (37 duplicate events added and removed, all cells of the notebook ran). Not yet run on the real data.
+
+**How to rerun.** In Colab: open the notebook, set `RAW_DRIVE_DIR`, *Runtime > Run all*. Locally: `run_all.ps1` or `run_all.sh`.
+
+**What can fail.** `FileNotFoundError ... Check RAW_DRIVE_DIR`: the Drive folder is not in *My Drive* (add a shortcut) or the path is wrong.
+`git clone` asks for a password: the repository is private, add the `GITHUB_TOKEN` Colab secret. Colab disconnects after long idle time:
+run all again (about 5 to 10 minutes). Expect small changes in demand-based numbers after the duplicate removal; row counts should not change,
+because a duplicate event never makes an item active on its own.

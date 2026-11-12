@@ -29,6 +29,13 @@ Done and on `main`:
    feature summary and data flow diagram. Rafi runs it on his laptop and exports the PDF.
 3. Prepare for Q&A: be able to explain every cleaning step and every feature (use `docs/cleaning_log.md`, `docs/data_dictionary.md`, `LOG.md` sections 3, 8, 9).
 
+## 2b. Since 12 Nov: processing runs in Google Colab
+- Notebook: `notebooks/G31-04_DataPrep_Colab.ipynb`. It clones this repo, copies the raw CSVs from Google Drive to `data_raw/`, runs steps 1 to 6.
+- Progress 1 problem (12 Nov): the lecturer asked why the numbers changed (20M rows, then 6.7M) and suspected unchecked AI output.
+  Explanation and fixes are in `LOG.md` section 12. The group has two pipelines with slightly different numbers; the slides use the other one
+  (`clean_data.py`, `build_features.py`, owner to confirm). The group must choose ONE source of numbers.
+- Next: Rafi runs the notebook on the real data, then checks `outputs/compare_progress1.csv` and Reconcile.
+
 ## 3. Open decisions (waiting for the group)
 - Category backfill: fill an item's category from later weeks? Removes most of the 29,358 "Unknown" rows (90% in the first 5 weeks) but uses a later record. Peeranat and the Data Scientists decide.
 - Proposal numbers: KPI 3 range 29 to 49% (data 21.9 to 48.6%); 1,180 categories (data 1,242). Hill (Data Analyst) decides.

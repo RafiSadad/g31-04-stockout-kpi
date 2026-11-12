@@ -39,8 +39,8 @@ What the course guideline (section 5 and 8) asks for Progress 1, and its status 
 | Feature engineering steps and the reason for each | Done (demand features) | [docs/data_dictionary.md](docs/data_dictionary.md), [scripts/04_demand_features.py](scripts/04_demand_features.py) |
 | Data flow diagram from raw data to model-ready data | Done (draft, Peeranat to check) | [docs/data_flow.png](docs/data_flow.png) |
 | Initial EDA (distributions, correlations, target balance) | Data Scientists | uses `work/modelling_table_features.csv.gz` |
-| Submission: cleaned dataset (CSV) | **To do** | planned: `G31-04_Progress1_CleanedData.csv` (too big for GitHub, upload to LEB2) |
-| Submission: notebook (.ipynb and PDF with outputs) | **To do** | planned: `G31-04_Progress1_DataPrep.ipynb` |
+| Submission: cleaned dataset (CSV) | Ready (made by step 6) | `outputs/G31-04_Progress1_CleanedData.csv`, saved to Google Drive by the notebook (too big for GitHub, upload to LEB2) |
+| Submission: notebook (.ipynb and PDF with outputs) | Ready to run | [notebooks/G31-04_DataPrep_Colab.ipynb](notebooks/G31-04_DataPrep_Colab.ipynb); run it in Colab, then save as PDF |
 
 Rule 7.4: every number in the slides and report must match the code. Use the numbers in the `Reconcile` and `Cleaning_log` sheets.
 
@@ -81,9 +81,16 @@ Files made during a run but not uploaded: `work/` (intermediate tables, for exam
 
 ## 4. How to run
 
-Needs Python 3.12 or newer, about 4 GB RAM, a few minutes.
+**Recommended: Google Colab** (no local setup, same result on every computer).
+Open [notebooks/G31-04_DataPrep_Colab.ipynb](https://colab.research.google.com/github/RafiSadad/g31-04-stockout-kpi/blob/main/notebooks/G31-04_DataPrep_Colab.ipynb) in Colab, set the Google Drive folder with the raw CSVs in cell 1, then *Runtime > Run all*.
+The notebook clones this repository, copies the CSVs into `data_raw/`, runs steps 1 to 6 and shows the cleaning log, Reconcile and
+the comparison with the Progress 1 slides. *File > Print > Save as PDF* gives the notebook PDF with outputs for the submission.
+The Colab link works only while the repository is public; if it is private, upload the notebook in Colab (*File > Upload notebook*)
+and add a GitHub token as the Colab secret `GITHUB_TOKEN`.
 
-**Windows PowerShell** (CSVs in the folder above the repository):
+**On your own computer.** Needs Python 3.12 or newer, about 4 GB RAM, a few minutes. Put the 4 CSVs in `data_raw/` (or keep them in the folder above the repository).
+
+**Windows PowerShell** (CSVs in `data_raw/`, or else in the folder above the repository):
 ```powershell
 pip install -r requirements.txt
 powershell -ExecutionPolicy Bypass -File run_all.ps1
@@ -92,7 +99,7 @@ If the CSVs are somewhere else: `$env:DATA_DIR = "C:\path\to\csvs"` before the s
 
 **Linux or macOS, or Git Bash**:
 ```bash
-DATA_DIR=.. bash run_all.sh
+bash run_all.sh            # or: DATA_DIR=.. bash run_all.sh
 ```
 
 After a run, open `outputs/G31-04 KPI Tables.xlsx`, sheet `Reconcile` (expect 15 OK and 1 known DIFF).
@@ -102,11 +109,12 @@ Do not stop step 4 with Ctrl+C: it writes a large file and the file is left brok
 
 | Step | Script | What it does | Output |
 |---|---|---|---|
-| 1 | `01_extract_properties.py` | Reads the 2 big property files in chunks, keeps only `available` and `categoryid` | `work/item_props_small.csv.gz` |
+| 1 | `01_extract_raw.py` | Reads the 2 big property files in chunks, keeps only `available` and `categoryid`; removes exact duplicate events | `work/item_props_small.csv.gz`, `work/events_clean.csv.gz` |
 | 2 | `02_explore_snapshots.py` | Checks the 18 snapshot dates and basic counts (prints only) | none |
 | 3 | `03_build_kpis.py` | Weekly item table: status (forward fill), category ("Unknown", parent), demand, active flag, label; KPI tables | `work/modelling_table.csv.gz`, xlsx |
 | 4 | `04_demand_features.py` | Adds the 9 demand features | `work/modelling_table_features.csv.gz` |
 | 5 | `05_docs.py` | Writes the data dictionary and the cleaning log | `docs/*.md`, 2 xlsx sheets |
+| 6 | `06_export_compare.py` | Exports the cleaned modelling table as CSV for the submission; compares our counts with the Progress 1 slides | `outputs/G31-04_Progress1_CleanedData.csv` (not in git), `outputs/compare_progress1.csv` |
 
 Helpers: `config.py` (folders, Unknown code), `cleanlog.py` (cleaning log), `dictionary_spec.py` (dictionary text).
 Libraries: pandas, numpy, openpyxl. Full details: `LOG.md`.
