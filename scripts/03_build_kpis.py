@@ -21,13 +21,17 @@ DAY = 86_400_000
 log = CleanLog("03_build_kpis")
 p = pd.read_csv(WORK_DIR / "item_props_small.csv.gz", dtype={"value": "string"})
 log.add("load step 1 output", "item_props_small", (0, 0), p.shape)
-ev = pd.read_csv(DATA_DIR / "events.csv", usecols=["timestamp", "event", "itemid"])
-log.add("load events (3 of 5 columns)", "events", (0, 0), ev.shape, "visitorid and transactionid not needed here")
+ev = pd.read_csv(WORK_DIR / "events_clean.csv.gz", usecols=["timestamp", "event", "itemid"])
+log.add("load cleaned events (3 of 5 columns)", "events_clean", (0, 0), ev.shape, "visitorid and transactionid not needed here")
 
 # ---------- snapshots and state matrices (items x snapshots) ----------
 a0 = p[p.property == "available"]
 a = a0.drop_duplicates(["itemid", "timestamp"], keep="last")
 log.add("drop duplicate (itemid, timestamp) for available", "available rows", a0.shape, a.shape, "keep the last row")
+_s = a.sort_values(["itemid", "timestamp"])
+n_first_or_change = int((_s["value"] != _s.groupby("itemid")["value"].shift()).sum())
+log.add("count first record and each status change (check only)", "available rows", a.shape, (n_first_or_change, a.shape[1]),
+        "the status is repeated every week even without a change; this count is not used further")
 snaps = np.sort(a["timestamp"].unique())
 dates = pd.to_datetime(snaps, unit="ms").strftime("%Y-%m-%d")
 S = a.pivot(index="itemid", columns="timestamp", values="value").astype(float).reindex(columns=snaps)
@@ -39,6 +43,9 @@ na_after = int(S.isna().sum().sum())
 log.add("forward fill status across snapshots", "status matrix", S.shape, S.shape,
         f"empty cells {na_before:,} -> {na_after:,} (left empty = before the first known status)")
 items = S.index
+n_known = int(S.notna().sum().sum())
+log.add("item-weeks with a known status (long format: itemid, snapshot, status)", "status matrix -> item-week rows",
+        (S.size, 3), (n_known, 3), f"{len(items):,} items x {len(snaps)} snapshots = {S.size:,}, minus {na_after:,} before the first status")
 c0 = p[p.property == "categoryid"]
 c = c0.drop_duplicates(["itemid", "timestamp"], keep="last")
 log.add("drop duplicate (itemid, timestamp) for categoryid", "categoryid rows", c0.shape, c.shape, "keep the last row")
@@ -197,27 +204,25 @@ n_hi = int(k2w.iloc[-1]["high_risk_categories"]); n_el = int(k2w.iloc[-1]["eligi
 tot_rows, tot_pos = int(mt.shape[0]), int(mt["y_next_out"].sum())
 t = k4_split.loc["test"]
 rec = pd.DataFrame([
-    ("KPI1 OOS rate on 13 Sep (%)", 58, k1d.loc["2015-09-13", "oos_rate_pct"]),
-    ("KPI1 OOS rate on 6 Sep (%)", 59, k1d.loc["2015-09-06", "oos_rate_pct"]),
-    ("KPI1 min over 18 dates (%)", 43, k1["oos_rate_pct"].min()),
-    ("KPI1 max over 18 dates (%)", 60, k1["oos_rate_pct"].max()),
-    ("KPI2 eligible categories", 220, n_el),
-    ("KPI2 high-risk categories", 22, n_hi),
-    ("KPI3 demand on unavailable 13 Sep (%)", 43, k3d.loc["2015-09-13", "demand_on_unavailable_pct"]),
-    ("KPI3 min (%)", 29, k3["demand_on_unavailable_pct"].min()),
-    ("KPI3 max (%)", 49, k3["demand_on_unavailable_pct"].max()),
-    ("Modelling rows", 283849, tot_rows),
-    ("Stock-outs in modelling table", 29502, tot_pos),
-    ("Stock-out share overall (%)", 10.4, round(100 * tot_pos / tot_rows, 1)),
-    ("KPI4 rule recall (test)", 0.42, t["recall"]),
-    ("KPI4 rule precision (test)", 0.24, t["precision"]),
-    ("KPI4 rule F1 (test)", 0.30, t["f1"]),
-    ("Stock-out share in test rows (%)", 11.3, t["stockout_share_pct"]),
-], columns=["check", "proposal_says", "script_result"])
-rec["match"] = np.where(np.isclose(rec["proposal_says"].astype(float), rec["script_result"].astype(float), atol=0.51 if rec["proposal_says"].astype(float).max() > 1 else 0.011), "OK", "DIFF")
-rec.loc[rec["check"].str.startswith(("Modelling", "Stock-outs in")), "match"] = np.where(
-    rec.loc[rec["check"].str.startswith(("Modelling", "Stock-outs in")), "proposal_says"].astype(float)
-    == rec.loc[rec["check"].str.startswith(("Modelling", "Stock-outs in")), "script_result"].astype(float), "OK", "DIFF")
+    ("KPI1 OOS rate on 13 Sep (%)", 58, k1d.loc["2015-09-13", "oos_rate_pct"], 0.5),
+    ("KPI1 OOS rate on 6 Sep (%)", 59, k1d.loc["2015-09-06", "oos_rate_pct"], 0.5),
+    ("KPI1 min over 18 dates (%)", 43, k1["oos_rate_pct"].min(), 0.5),
+    ("KPI1 max over 18 dates (%)", 60, k1["oos_rate_pct"].max(), 0.5),
+    ("KPI2 eligible categories", 220, n_el, 0),
+    ("KPI2 high-risk categories", 22, n_hi, 0),
+    ("KPI3 demand on unavailable 13 Sep (%)", 43, k3d.loc["2015-09-13", "demand_on_unavailable_pct"], 0.5),
+    ("KPI3 min (%)", 29, k3["demand_on_unavailable_pct"].min(), 0.5),
+    ("KPI3 max (%)", 49, k3["demand_on_unavailable_pct"].max(), 0.5),
+    ("Modelling rows", 283849, tot_rows, 0),
+    ("Stock-outs in modelling table", 29502, tot_pos, 0),
+    ("Stock-out share overall (%)", 10.4, round(100 * tot_pos / tot_rows, 1), 0.05),
+    ("KPI4 rule recall (test)", 0.42, t["recall"], 0.005),
+    ("KPI4 rule precision (test)", 0.24, t["precision"], 0.005),
+    ("KPI4 rule F1 (test)", 0.30, t["f1"], 0.005),
+    ("Stock-out share in test rows (%)", 11.3, t["stockout_share_pct"], 0.05),
+], columns=["check", "proposal_says", "script_result", "tolerance"])
+# tolerance = half of the last digit written in the proposal (58 -> 0.5, 10.4 -> 0.05, 0.42 -> 0.005); counts must be equal
+rec["match"] = np.where((rec["proposal_says"].astype(float) - rec["script_result"].astype(float)).abs() <= rec["tolerance"] + 1e-9, "OK", "DIFF")
 
 def show_unknown(df):
     """Write the -1 code as the word Unknown in the sheets."""
