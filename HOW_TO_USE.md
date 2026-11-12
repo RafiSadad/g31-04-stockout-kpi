@@ -12,8 +12,15 @@ The notebook works with **Google Drive folder links**. Cell 1 already has the gr
 - `RAW_DRIVE_DIR`: folder with the 4 raw CSV files (`item_properties_part1.csv`, `item_properties_part2.csv`, `events.csv`, `category_tree.csv`)
 - `SAVE_DRIVE_DIR`: folder `G31-04-OUTPUT` for the results
 
-You need access to both folders with the Google account you use in Colab. To use other folders, paste their links into
-cell 1. A path such as `/content/drive/MyDrive/G31-04` also works (then Drive is mounted instead).
+Both folders are shared as "Anyone with the link: Editor". The links are already saved in cell 1, so you do not type them again.
+To use other folders, paste their links into cell 1. A path such as `/content/drive/MyDrive/G31-04` also works (then Drive is mounted instead).
+
+**Do I have to sign in to Google?**
+- *Reading the raw data: no.* The notebook downloads the 4 CSVs without a sign-in, because the folder is shared with the link.
+  If Google blocks that download (for example a download quota), the notebook asks you to sign in and tries again.
+- *Saving the results to the results folder: yes.* Google does not allow uploads without a sign-in, even to a folder shared with
+  "anyone with the link". So the sign-in window appears only in the last cell. If you skip it, nothing is lost: the same cell also
+  makes `G31-04_results.zip` and your browser downloads it.
 
 ### 1.2 Open the notebook
 - If the repository is public, open this link:
@@ -24,20 +31,20 @@ cell 1. A path such as `/content/drive/MyDrive/G31-04` also works (then Drive is
 ### 1.3 Run it
 1. Check cell 1 (Settings). The folder links are already filled in. The raw folder may hold the 4 CSV files or a zip with them.
 2. Choose **Runtime > Run all**.
-3. A Google sign-in window opens: choose the account that can open both folders and allow access.
-   Cell 3 then downloads the 4 CSVs (about 1 GB, 1 to 3 minutes) and checks that each file has the same size as on Drive.
+3. Cell 3 downloads the 4 CSVs (about 1 GB, 1 to 3 minutes). No sign-in is needed for this.
+   At the very end, a Google sign-in window opens for saving to the results folder. Choose your Google account and allow access.
 4. Wait about 5 to 10 minutes. Each step prints what it did. If a step fails, the notebook stops and shows the error (see section 5).
 
 ### 1.4 What the notebook does
 | Cell | What happens |
 |---|---|
 | 1. Settings | Paths for the raw data and for the results |
-| 2. Drive and GitHub | Signs in to Google Drive and clones (or updates) this repository |
-| 3. Raw files | Downloads the 4 CSVs into `data_raw/` inside the repository (extracts them from a zip if needed) and checks the file sizes |
+| 2. Drive and GitHub | Clones (or updates) this repository and defines the Drive helpers (a path in cell 1 mounts Drive instead) |
+| 3. Raw files | Downloads the 4 CSVs into `data_raw/` inside the repository without a sign-in (extracts them from a zip if needed). If the public download fails, it signs in and checks the file sizes against Drive |
 | 4. Libraries | Installs `requirements.txt` and prints the versions used |
 | Steps 1 to 7 | Runs the numbered scripts in `scripts/` (table in section 3) |
 | Results | Shows the cleaning log, Reconcile, the comparison with the Progress 1 slides, the feature summary, the diagrams and all charts |
-| Save | Uploads the results to the results folder (`G31-04-OUTPUT`). A file with the same name is replaced, so there are no duplicates. Charts go into a `charts` sub-folder |
+| Save | Makes `G31-04_results.zip` (your browser downloads it), then uploads the results to the results folder (`G31-04-OUTPUT`) after a Google sign-in. A file with the same name is replaced, so there are no duplicates. Charts go into a `charts` sub-folder |
 | Optional push | Commits the updated docs, workbook and charts to GitHub |
 
 ### 1.5 Files for the course submission
@@ -109,7 +116,9 @@ Needs Python 3.12 or newer and about 4 GB RAM.
 | Message | What to do |
 |---|---|
 | `FileNotFoundError: Not found in ...: [...]` | The raw folder link in cell 1 is wrong, or the 4 files have other names. With a path: the folder is not in My Drive |
-| `HttpError 404` or `403` in cell 3 or in the save cell | The Google account used in Colab cannot open that folder. Ask the owner to share it with that account (editor for the results folder) |
+| `HttpError 404` or `403` after a sign-in | The Google account you chose cannot open that folder. Ask the owner to share it with that account (editor for the results folder), or use the zip |
+| `Download without sign-in did not work` | Not an error. Google blocked the public download (often a quota on large files), so the notebook signs in and downloads through your account |
+| `Could not save to Google Drive` | You skipped the sign-in or the account has no edit access. Use the zip your browser downloaded, or run the save cell again |
 | `SIZE DIFFERS FROM DRIVE` in cell 3 | The download was cut off. Delete `data_raw/` in the Colab file browser and run cell 3 again |
 | `git clone` asks for a username or password | The repository is private. Add the `GITHUB_TOKEN` secret (section 4) |
 | `RuntimeError: 0X_... failed` | Read the error printed above it. Run all again once; if it fails again, send the error to Rafi |

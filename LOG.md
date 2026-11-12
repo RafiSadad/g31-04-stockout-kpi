@@ -226,3 +226,15 @@ because a duplicate event never makes an item active on its own.
   sub-folder, second save without duplicates). The real Drive API calls run only in Colab and were not run here.
 - What can fail: `HttpError 403/404` when the Colab account has no access to a folder; a cut-off download (cell 3 then shows
   `SIZE DIFFERS FROM DRIVE`; delete `data_raw/` and run cell 3 again).
+
+## 15. Reading without a Google sign-in (12 Nov 2026)
+- Permissions read from Drive for both folders: "anyone with the link" = writer, owner Rafi. So reading needs no sign-in, but uploading
+  through the Drive API still needs a sign-in (Google gives no anonymous upload, also not for public editor links).
+- Notebook cell 3 first downloads the raw folder with `gdown.download_folder` (preinstalled in Colab, no sign-in). If that fails
+  (for example a Drive download quota on large files) or files are missing, it signs in and uses the Drive API as before, with the size check.
+- The sign-in now happens only when the Drive API is first needed (`get_svc()`): in cell 3 if the fallback is used, and in the save cell.
+- The save cell first writes `G31-04_results.zip` (6 result files and the charts) and starts a browser download (`files.download`), then
+  uploads to the results folder in a try block, so skipping the sign-in does not stop or fail the notebook.
+- Tested with fakes for gdown and the Drive API (public download ok: no sign-in in cell 3, one sign-in in the save cell; public download
+  fails: fallback with one sign-in and size check) and a full notebook run in path mode. The real `gdown` and Drive calls run only in Colab
+  and were not run here. If `gdown` fails on the real folder for another reason, the fallback should still work; report the message.
