@@ -16,7 +16,7 @@ XLSX = OUT_DIR / "G31-04 KPI Tables.xlsx"
 # ---------- one real example row per table ----------
 small = pd.read_csv(WORK_DIR / "item_props_small.csv.gz", nrows=200_000, dtype={"value": "string"})
 ip_row = small[small["property"] == "available"].iloc[0]
-ev = pd.read_csv(DATA_DIR / "events.csv", nrows=200_000)
+ev = pd.read_csv(DATA_DIR / "events.csv", nrows=200_000)   # raw file: the dictionary describes the raw columns
 ev_row = ev.iloc[0]
 ex = {"item_properties (part1 + part2)": {c: str(ip_row[c]) for c in ip_row.index},
       "events": {c: str(ev_row[c]) for c in ("timestamp", "visitorid", "event", "itemid")}}

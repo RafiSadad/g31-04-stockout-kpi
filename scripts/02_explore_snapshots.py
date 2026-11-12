@@ -11,7 +11,7 @@ print("values:", a["value"].value_counts().to_dict())
 print("items with availability:", a["itemid"].nunique())
 c = p[p.property == "categoryid"]
 print("items with category:", c["itemid"].nunique(), "| categories:", c["value"].nunique())
-e = pd.read_csv(DATA_DIR / "events.csv")
+e = pd.read_csv(WORK_DIR / "events_clean.csv.gz")   # duplicates removed in step 1
 e["dt"] = pd.to_datetime(e["timestamp"], unit="ms")
 print("events:", len(e), e["dt"].min(), e["dt"].max(), "| items:", e["itemid"].nunique(), "| visitors:", e["visitorid"].nunique())
 print(e["event"].value_counts().to_dict())

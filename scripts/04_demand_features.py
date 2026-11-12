@@ -1,7 +1,7 @@
 """Step 4: add demand features to the modelling table.
 
 Input : work/modelling_table.csv.gz and work/item_week.csv.gz (step 3), work/item_props_small.csv.gz (step 1, for the
-        exact snapshot timestamps), data_raw/events.csv (for visitors and the time of the last purchase).
+        exact snapshot timestamps), work/events_clean.csv.gz (step 1, for visitors and the time of the last purchase).
 Output: work/modelling_table_features.csv.gz (same rows as the modelling table, more columns).
 
 Every feature uses only events at or before the snapshot time t, so nothing from the label week leaks in.
@@ -23,8 +23,8 @@ p = pd.read_csv(WORK_DIR / "item_props_small.csv.gz", usecols=["timestamp", "pro
 snaps = np.sort(p.loc[p["property"] == "available", "timestamp"].unique())
 t_of = dict(zip(pd.to_datetime(snaps, unit="ms").strftime("%Y-%m-%d"), snaps))
 del p
-ev = pd.read_csv(DATA_DIR / "events.csv", usecols=["timestamp", "visitorid", "event", "itemid"])
-log.add("load events (4 of 5 columns)", "events", (0, 0), ev.shape, "transactionid not needed")
+ev = pd.read_csv(WORK_DIR / "events_clean.csv.gz", usecols=["timestamp", "visitorid", "event", "itemid"])
+log.add("load cleaned events (4 of 5 columns)", "events_clean", (0, 0), ev.shape, "transactionid not needed")
 
 # ---------- features from columns that step 3 already made ----------
 mt["demand_4w"] = mt["views_4w"] + mt["atc_4w"]
