@@ -323,3 +323,13 @@ Files from the run: `cleaning_log.csv` and `data_quality_checks.csv` (sent by Ra
   slides: 460, 49,815, 30 visitors and 3,386 purchases), which supports that the steps are right.
 - Small fix after this run: the quality table in cell 2.1 showed `<NA>` for the "Unknown" count because it is counted in step 4.1.
   The table is now shown again at the end of 4.1 with the count. The saved CSV was already right.
+
+## 20. Where 20,275,902 comes from (12 Nov 2026)
+- It is the number of data rows in `item_properties_part1.csv` (10,999,999) plus `item_properties_part2.csv` (9,275,903). The header line
+  (column names) is not counted. Columns: timestamp, itemid, property, value. Counted in notebook cell 1.1 while reading the files in
+  chunks (`n += len(chunk)`), written to the cleaning log as steps 1.1 "read ..." and "stack part 1 and part 2".
+- New notebook cell 1.1b counts the rows a second way, without pandas: it counts the line breaks in each file (data rows = lines - 1).
+  For the real files this should give 11,000,000 lines for part 1 and 9,275,904 for part 2. Tested on the synthetic files: same as
+  `wc -l` and as the pandas count.
+- Cell 1.1 now also prints the number of items in the property files and the average number of rows per item, and the text above 1.1b
+  explains the long format (one row = one value of one property of one item at one time), which is why 4 columns hold 20 million rows.

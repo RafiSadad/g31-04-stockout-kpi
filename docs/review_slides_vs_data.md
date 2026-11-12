@@ -94,7 +94,7 @@ Names, roles and IDs are complete. **OK.**
 This is the slide the lecturer asked about. **The numbers are right, but without an explanation they look inconsistent.**
 | Slide says | Data gives | Verdict |
 |---|---|---|
-| 20,275,902 · 4 cols | 20,275,902 | OK |
+| 20,275,902 · 4 cols | 10,999,999 rows in part 1 + 9,275,903 rows in part 2 = 20,275,902; the 4 columns are timestamp, itemid, property, value. Notebook cell 1.1 (cleaning log steps 1.1) and a second count in cell 1.1b (line breaks in the files: lines - 1 header line) | OK |
 | 2,291,853 · keep 2 of 1,104 properties | 2,291,853 (1,503,639 available + 788,214 categoryid) | OK |
 | 588,801 · stock only, repeats dropped | 417,053 first records + 171,748 changes = 588,801 | OK, **EXPLAIN** |
 | 6,707,888 · weekly grid | 417,053 items x 18 weeks = 7,506,954, minus 799,066 before the first record | OK, **EXPLAIN** |
