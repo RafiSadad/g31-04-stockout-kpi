@@ -308,3 +308,18 @@ recount; then the feature code has a bug and the dataset must not be used. Too l
 - Chart files renumbered: 01 and 02 item_properties part 1 and 2, 03 events, 04 category_tree, 05 final table, 06 pipeline tree,
   07 rows per step, 08 target balance, 09 views distribution, 10 feature correlation, 11 empty values.
 - Checked on synthetic data: all 38 cells ran, leakage check 0 of 300 rows differ, tree and pictures checked by eye.
+
+## 19. Data preparation notebook on the real data (12 Nov 2026, Rafi, Colab)
+Files from the run: `cleaning_log.csv` and `data_quality_checks.csv` (sent by Rafi). All counts are consistent with each other:
+- Load: 10,999,999 + 9,275,903 = 20,275,902 property rows (1,104 names, 1,102 coded and dropped); 2,756,101 events; 1,669 categories.
+- Cleaning: 2,291,853 rows kept (1,503,639 available + 788,214 categoryid); no invalid values and no duplicate (item, time) records;
+  460 exact duplicate events removed (2,755,641 left).
+- Table: 417,053 items x 18 snapshots = 7,506,954 item-weeks, 6,707,888 with a known status; 5,941,797 in weeks with a target;
+  850,748 in stock; 283,849 in stock and active = final table, 28 columns. 883,701 item-weeks have no category yet ("Unknown").
+- The leakage check (cell 5.3) passed on the real data: the run went on to step 6.1, which comes after it.
+- Quality checks: 18 snapshots, 21 Jun missing; 324,859 of 417,053 items (77.9%) never in stock; 49,815 items with events but no stock
+  record (255,585 events); 30 visitors with 1,000+ events (61,184 events, 3,386 purchases), kept; 25 top-level categories;
+  30 category ids not in the tree. Several of these were found the same way by other members (proposal: 78%, 30 ids; Progress 1
+  slides: 460, 49,815, 30 visitors and 3,386 purchases), which supports that the steps are right.
+- Small fix after this run: the quality table in cell 2.1 showed `<NA>` for the "Unknown" count because it is counted in step 4.1.
+  The table is now shown again at the end of 4.1 with the count. The saved CSV was already right.
