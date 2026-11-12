@@ -39,7 +39,8 @@ Done and on `main`:
   features with leakage check, final dataset, dictionary, EDA). Reads `G31-04-RAW` and saves to `G31-04-OUTPUT` in Rafi's Drive when present.
   Rafi's wish (12 Nov): the notebook shows the real process; it does not chase the old numbers and does not compare with the proposal.
 - 12 Nov: the notebook ran on the real data in Colab (final table 283,849 x 28, leakage check passed). Results in LOG.md section 19.
-  The folder `outputs/G31-04_Progress1_results/` (uploaded earlier) is from the older script run and has the wrong 171,748 count; replace or delete it.
+  The folder `outputs/G31-04_Progress1_results/` (older script run, wrong 171,748 count) was deleted on Rafi's request.
+- Review of the proposal and Progress 1 slides against the data, per slide: `docs/review_slides_vs_data.md` (to share with Hill).
 - Drive folders (links are the notebook defaults): raw CSVs https://drive.google.com/drive/folders/1L2N2pFDTrI8cf2VQQMiS9PuqRIN0EuIq ,
   results `G31-04-OUTPUT` https://drive.google.com/drive/folders/1N7ZhSxAoZrTyzmRgChgoF7F6Fel9pWrm (both owned by Rafi).
 - Next: Rafi runs the notebook on the real data, then checks `outputs/compare_progress1.csv`, Reconcile and the charts.

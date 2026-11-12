@@ -127,6 +127,8 @@ Do not stop step 4 with Ctrl+C: it writes a large file and the file is left brok
 Helpers: `config.py` (folders, Unknown code), `cleanlog.py` (cleaning log), `dictionary_spec.py` (dictionary text).
 Libraries: pandas, numpy, openpyxl. Full details: `LOG.md`.
 
+**Review of the proposal and the Progress 1 slides against the data, slide by slide: [docs/review_slides_vs_data.md](docs/review_slides_vs_data.md).**
+
 ## 6. Messages for the group
 
 **Start here (5 minutes):** look at the [data flow diagram](docs/data_flow.png), then the [data dictionary](docs/data_dictionary.md),
