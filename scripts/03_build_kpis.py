@@ -29,7 +29,8 @@ a0 = p[p.property == "available"]
 a = a0.drop_duplicates(["itemid", "timestamp"], keep="last")
 log.add("drop duplicate (itemid, timestamp) for available", "available rows", a0.shape, a.shape, "keep the last row")
 _s = a.sort_values(["itemid", "timestamp"])
-n_first_or_change = int((_s["value"] != _s.groupby("itemid")["value"].shift()).sum())
+_prev = _s.groupby("itemid")["value"].shift()
+n_first_or_change = int((_prev.isna() | (_s["value"] != _prev).fillna(True)).sum())   # first record of an item, or a change
 log.add("count first record and each status change (check only)", "available rows", a.shape, (n_first_or_change, a.shape[1]),
         "the status is repeated every week even without a change; this count is not used further")
 snaps = np.sort(a["timestamp"].unique())
