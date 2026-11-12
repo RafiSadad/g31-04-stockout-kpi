@@ -58,6 +58,9 @@ Done and on `main`:
   to order" (out of scope). KPI 3 (about 43% of interest goes to unavailable items) also helps a sales or conversion team.
 - Idea for Progress 1 EDA (not started): does the add-to-cart per view ratio drop when `available = 0`? Also helps to check what `available = 0` means.
 
+- 12 Nov: the group took KPI 4 (model performance) out after the proposal. Progress 1 KPI order: KPI 1 high-risk categories,
+  KPI 2 out-of-stock rate, KPI 3 demand on unavailable items. The rule baseline (recall 0.42, precision 0.24) stays as the model baseline.
+
 ## 4. Team and Discord
 Members (proposal): Sirawich Moonmangmee (Leader, Data Analyst), Peeranat Charungrattanapong (Data Engineer),
 Pakkapon Rattanaumpawan (Data Scientist), Arnakorn Khemtaronon (Data Scientist), Rafi Sadad Ar Rabban (Data Engineer, Member 5).

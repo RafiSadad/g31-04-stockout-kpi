@@ -23,7 +23,7 @@ compute it; the author must show where it comes from or remove it. **UNSUPPORTED
 | Where | Main problems |
 |---|---|
 | Proposal | KPI 3 range (29-49%) and the number of categories (1,180) are wrong |
-| Progress 1 slides | Final table size (282,708 x 25), stock-out share (10.3%), high-risk base (225), rule baseline (47.6% / 22.0%) come from another pipeline; the feature list does not match the submitted notebook; slide 11 title must be removed; slide 5 needs an explanation for the row counts |
+| Progress 1 slides | KPI 4 was taken out on purpose (group decision; the report must say so). Final table size (282,708 x 25), stock-out share (10.3%), high-risk base (225), rule baseline (47.6% / 22.0%) come from another pipeline; the feature list does not match the submitted notebook; slide 11 title must be removed; slide 5 needs an explanation for the row counts |
 
 The other pipeline (`clean_data.py`, `build_features.py`) is not in the submission. Because the lecturer checks numbers against
 the submitted code (guideline rule 7.4), every number on the slides must come from the submitted notebook.
@@ -52,7 +52,7 @@ the submitted code (guideline rule 7.4), every number on the slides must come fr
 | KPI 2, high-risk categories | 22 of 220 | 22 of 220 | OK | |
 | KPI 3 on 13 Sep | 43% | 43.5% | OK (rounded down) | better "44%" or "43.5%" |
 | **KPI 3 range** (report 1.2, slide 3) | **29% to 49%** | **21.9% (10 May) to 48.6% (2 Aug)** | **WRONG** | "22% to 49%" |
-| Rule baseline, test weeks | recall 0.42, precision 0.24, F1 0.30, 11.3% stock-outs | 0.42, 0.24, 0.30, 11.3% | OK | |
+| Rule baseline, test weeks (proposal KPI 4, taken out later) | recall 0.42, precision 0.24, F1 0.30, 11.3% stock-outs | 0.42, 0.24, 0.30, 11.3% | OK | |
 
 ---
 
@@ -64,7 +64,7 @@ Names, roles and IDs are complete. **OK.**
 ### Slide 2. Recap: problem, user and KPIs
 | Slide says | Data gives | Verdict |
 |---|---|---|
-| "KPI 1 · High-risk categories (top 10%)" | In the proposal this is KPI 2; KPI 1 is the out-of-stock rate | **WRONG numbering**: use the proposal order (KPI 1 out-of-stock rate, KPI 2 high-risk, KPI 3 demand on unavailable, KPI 4 model) |
+| 3 KPIs, new order: KPI 1 high-risk categories, KPI 2 out-of-stock rate, KPI 3 demand on unavailable | The group took KPI 4 (model performance) out after the proposal, and changed the order | OK (group decision). Chapter 1 of the cumulative report must use the same list and order, and say in one sentence why KPI 4 was removed |
 | 22 of **225** | 22 of **220** | **WRONG** (225 comes from the other pipeline) |
 | 58% out-of-stock rate on 13 Sep | 58.0% | OK |
 | **43.6%** demand on unavailable items | **43.5%** | **WRONG** (small, but the lecturer compares with the code) |
@@ -153,8 +153,8 @@ Values from the scripts on the real data (train weeks, Spearman). Compare with t
 |---|---|---|
 | clean_data.py, build_features.py | The submission is the notebook `G31-04_Progress1_DataPrep.ipynb` | **WRONG**: name the notebook sections; use its pipeline tree picture `06_pipeline_tree.png` |
 | Model table 282,708 rows x 25 columns | 283,849 x 28 | **WRONG** |
-| **Rule baseline recomputed: Recall 47.6%, Precision 22.0% (proposal reported 42% and 24%)** | Recall 42%, precision 24% on the cleaned test weeks | **WRONG**: the cleaned data still gives the proposal's values |
-| "Feed risk scores into KPI 1" | In the proposal the risk score feeds KPI 2 | **WRONG numbering** |
+| **Rule baseline recomputed: Recall 47.6%, Precision 22.0% (proposal reported 42% and 24%)** | Recall 42%, precision 24% on the cleaned test weeks | **WRONG**: the cleaned data still gives the proposal's values. (KPI 4 was taken out, but this baseline is still what the models must beat.) |
+| "Feed risk scores into KPI 1" | With the new KPI list, KPI 1 = high-risk categories, which uses the risk score | OK |
 
 ### Slide 11. "Fixing data numbers to be relate with the slide"
 **Remove this slide.** The title says that data numbers were changed to fit the slide. That is the opposite of what we do (the
@@ -163,7 +163,8 @@ slides must follow the data), and it is exactly what the lecturer was worried ab
 ---
 
 ## What to do
-1. Data Analyst: update proposal 1.2 and 2.1 (KPI 3 range 22-49%, 1,242 categories) in the cumulative report.
+1. Data Analyst: update proposal 1.2 and 2.1 in the cumulative report: the new KPI list (3 KPIs, new order, why KPI 4 was
+   removed), the KPI 3 range (22-49%) and 1,242 categories.
 2. Slides 2, 3, 5, 6, 7, 8, 9, 10: take every number and chart from the submitted notebook run (`G31-04-OUTPUT`), not from
    the other pipeline. Delete slide 11.
 3. Slide 5: add the long-format explanation above and the rows-per-step chart.
