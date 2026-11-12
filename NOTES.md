@@ -34,7 +34,8 @@ Done and on `main`:
 - Progress 1 problem (12 Nov): the lecturer asked why the numbers changed (20M rows, then 6.7M) and suspected unchecked AI output.
   Explanation and fixes are in `LOG.md` section 12. The group has two pipelines with slightly different numbers; the slides use the other one
   (`clean_data.py`, `build_features.py`, owner to confirm). The group must choose ONE source of numbers.
-- Next: Rafi runs the notebook on the real data, then checks `outputs/compare_progress1.csv` and Reconcile.
+- Step 7 (`07_charts.py`) makes all charts in `outputs/charts/`. English guide for the group: `HOW_TO_USE.md`.
+- Next: Rafi runs the notebook on the real data, then checks `outputs/compare_progress1.csv`, Reconcile and the charts.
 
 ## 3. Open decisions (waiting for the group)
 - Category backfill: fill an item's category from later weeks? Removes most of the 29,358 "Unknown" rows (90% in the first 5 weeks) but uses a later record. Peeranat and the Data Scientists decide.

@@ -38,7 +38,7 @@ What the course guideline (section 5 and 8) asks for Progress 1, and its status 
 | Data quality issues, and each cleaning step with row and column counts before and after | Done | [docs/cleaning_log.md](docs/cleaning_log.md), [LOG.md](LOG.md) |
 | Feature engineering steps and the reason for each | Done (demand features) | [docs/data_dictionary.md](docs/data_dictionary.md), [scripts/04_demand_features.py](scripts/04_demand_features.py) |
 | Data flow diagram from raw data to model-ready data | Done (draft, Peeranat to check) | [docs/data_flow.png](docs/data_flow.png) |
-| Initial EDA (distributions, correlations, target balance) | Data Scientists | uses `work/modelling_table_features.csv.gz` |
+| Initial EDA (distributions, correlations, target balance) | Charts ready (step 7); interpretation by the Data Scientists | `outputs/charts/04_target_balance.png`, `05_views_distribution.png`, `06_feature_correlation.png` |
 | Submission: cleaned dataset (CSV) | Ready (made by step 6) | `outputs/G31-04_Progress1_CleanedData.csv`, saved to Google Drive by the notebook (too big for GitHub, upload to LEB2) |
 | Submission: notebook (.ipynb and PDF with outputs) | Ready to run | [notebooks/G31-04_DataPrep_Colab.ipynb](notebooks/G31-04_DataPrep_Colab.ipynb); run it in Colab, then save as PDF |
 
@@ -81,6 +81,8 @@ Files made during a run but not uploaded: `work/` (intermediate tables, for exam
 
 ## 4. How to run
 
+**Step-by-step guide for everyone: [HOW_TO_USE.md](HOW_TO_USE.md).**
+
 **Recommended: Google Colab** (no local setup, same result on every computer).
 Open [notebooks/G31-04_DataPrep_Colab.ipynb](https://colab.research.google.com/github/RafiSadad/g31-04-stockout-kpi/blob/main/notebooks/G31-04_DataPrep_Colab.ipynb) in Colab, set the Google Drive folder with the raw CSVs in cell 1, then *Runtime > Run all*.
 The notebook clones this repository, copies the CSVs into `data_raw/`, runs steps 1 to 6 and shows the cleaning log, Reconcile and
@@ -115,6 +117,7 @@ Do not stop step 4 with Ctrl+C: it writes a large file and the file is left brok
 | 4 | `04_demand_features.py` | Adds the 9 demand features | `work/modelling_table_features.csv.gz` |
 | 5 | `05_docs.py` | Writes the data dictionary and the cleaning log | `docs/*.md`, 2 xlsx sheets |
 | 6 | `06_export_compare.py` | Exports the cleaned modelling table as CSV for the submission; compares our counts with the Progress 1 slides | `outputs/G31-04_Progress1_CleanedData.csv` (not in git), `outputs/compare_progress1.csv` |
+| 7 | `07_charts.py` | Makes every chart for the slides and the report (cleaning funnel, KPI trend, top categories, target balance, views distribution, feature correlation, missing values) | `outputs/charts/*.png` |
 
 Helpers: `config.py` (folders, Unknown code), `cleanlog.py` (cleaning log), `dictionary_spec.py` (dictionary text).
 Libraries: pandas, numpy, openpyxl. Full details: `LOG.md`.

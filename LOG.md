@@ -19,7 +19,8 @@ reuse them and rerun them if something breaks.
 | 4 | `04_demand_features.py` | step 3 and step 1 output, events | `work/modelling_table_features.csv.gz` | Adds 9 demand features to the modelling table (section 8). Same rows, more columns. |
 | 5 | `05_docs.py` | outputs of steps 1 to 4, small parts of the raw CSVs | `docs/data_dictionary.md`, `docs/cleaning_log.md`, sheets `Data_dictionary` and `Cleaning_log` in the xlsx | Writes the data dictionary (text from `scripts/dictionary_spec.py`, example values from the data) and the cleaning log. Does not touch the other sheets. |
 | 6 | `06_export_compare.py` | step 4 output, cleaning log, xlsx | `outputs/G31-04_Progress1_CleanedData.csv`, `outputs/compare_progress1.csv` | Exports the cleaned modelling table as CSV and compares our counts with the Progress 1 slides (section 12). |
-| 7 | `docs/data_flow.mmd` | none | `docs/data_flow.png` | `mmdc -i docs/data_flow.mmd -o docs/data_flow.png -w 2400 -b white -s 2` |
+| 7 | `07_charts.py` | steps 1 to 6 outputs | `outputs/charts/*.png` | All charts for slides and report (section 13). |
+| 8 | `docs/data_flow.mmd` | none | `docs/data_flow.png` | `mmdc -i docs/data_flow.mmd -o docs/data_flow.png -w 2400 -b white -s 2` |
 
 ## 3. Definitions used in step 3 (from the proposal, sections 1.2 and 2.2)
 - **Snapshot**: one of the 18 weekly dates where `available` was recorded (10 May to 13 Sep 2015, 21 Jun missing).
@@ -190,3 +191,21 @@ do not stop it with Ctrl+C, or `modelling_table_features.csv.gz` is left half wr
 `git clone` asks for a password: the repository is private, add the `GITHUB_TOKEN` Colab secret. Colab disconnects after long idle time:
 run all again (about 5 to 10 minutes). Expect small changes in demand-based numbers after the duplicate removal; row counts should not change,
 because a duplicate event never makes an item active on its own.
+
+## 13. Charts and the English guide (12 Nov 2026)
+**What was done**
+- `scripts/07_charts.py` (new, step 7): makes 7 slide-size charts (1600 x 900 px) in `outputs/charts/`: cleaning funnel, KPI 1 and
+  KPI 3 per week, top categories (KPI 2), target balance per week with the split, views distribution with the stock-out rate per group,
+  Spearman correlation of each feature with the target (train weeks only), missing values per column.
+- Every number in a chart is read from the run's own files (cleaning log, modelling table, KPI workbook). Titles state only what the
+  data shows (for example the first and last weekly value); they make no claim that was not computed. Interpretation belongs in the slides.
+- Spearman correlation is computed as the Pearson correlation of the ranks (no scipy needed); rows with an empty value are left out per feature.
+- Colors: validated categorical slots blue `#2a78d6` and orange `#eb6834` (adjacent CVD Delta E 24.7), blue/red diverging pair for
+  the signed correlation, with the sign also written as text. One y-axis per chart.
+- `matplotlib>=3.7` added to `requirements.txt`. Step 7 added to `run_all.sh`, `run_all.ps1` and the Colab notebook (it also shows all
+  charts, saves them to Drive and includes them in the optional push).
+- `HOW_TO_USE.md` (new): English step-by-step guide for all members (Colab, submission files, how to read the results, charts, token, errors).
+- Tested on synthetic data (all notebook cells ran) and, for charts 2 and 3, on the real KPI workbook from 4 Nov. Not yet run on the real data end to end.
+
+**What can fail.** `skip 03_top_categories.png`: no category has 20 or more eligible items in the latest week (only with test data).
+`ModuleNotFoundError: matplotlib`: run `pip install -r requirements.txt`.
