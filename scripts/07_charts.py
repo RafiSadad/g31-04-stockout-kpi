@@ -11,6 +11,11 @@ Charts
   05_views_distribution.png   distribution of views in the last 7 days, and the stock-out rate per group
   06_feature_correlation.png  Spearman correlation of each feature with the target, train weeks only
   07_missing_values.png       share of empty values per column of the modelling table
+  08_raw_item_properties.png  structure of the raw item_properties file: header and the first rows, plus rows of the 2 kept properties
+  09_raw_events.png           structure of the raw events file: header and the first rows
+  10_raw_category_tree.png    structure of the raw category tree: header and the first rows
+  11_modelling_table.png      structure of the final modelling table: header and the first rows (first 9 columns)
+The sample rows in charts 08 to 11 are read from the files themselves (the first rows), so they are real rows, not examples.
 Colors: validated categorical slots (blue #2a78d6, orange #eb6834) and the blue/red diverging pair; light surface.
 """
 import re
@@ -20,7 +25,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from config import WORK_DIR, OUT_DIR
+from config import DATA_DIR, WORK_DIR, OUT_DIR
 from cleanlog import PATH as LOG_PATH
 
 CH = OUT_DIR / "charts"
@@ -220,6 +225,93 @@ ax.set_xlim(0, 100)
 ax.set_xlabel("% of rows empty")
 ax.grid(axis="y", visible=False)
 save(fig, "07_missing_values.png", "work/modelling_table_features.csv.gz")
+
+# ---------- 08 to 11: what the data looks like (header + first rows) ----------
+HEAD = "#5f6a86"
+
+
+def table_panel(ax, df, top_title):
+    """Draw a header row and the sample rows as a table on an empty axis."""
+    ax.axis("off")
+    ax.set_title(top_title, fontsize=11, loc="left", color=INK2, fontweight="normal", pad=4)
+    cut = lambda t: t if len(t) <= 30 else t[:27] + "..."      # very long coded values are shortened for display only
+    cells = [[cut("" if pd.isna(v) else str(v)) for v in row] for row in df.itertuples(index=False)]
+    t = ax.table(cellText=cells, colLabels=list(df.columns), loc="upper left", cellLoc="left", colLoc="left",
+                 bbox=[0, 0, 1, 1])
+    t.auto_set_font_size(False)
+    t.set_fontsize(9.5)
+    width = [max([len(str(c))] + [len(row[i]) for row in cells]) + 2 for i, c in enumerate(df.columns)]
+    for (r, c), cell in t.get_celld().items():
+        cell.set_width(width[c] / sum(width))
+        cell.set_edgecolor(GRID)
+        if r == 0:
+            cell.set_facecolor(HEAD)
+            cell.get_text().set_color("white")
+            cell.get_text().set_fontweight("bold")
+        else:
+            cell.set_facecolor("white" if r % 2 else BAND)
+            cell.get_text().set_family("monospace")
+
+
+def utc(ms):
+    return pd.to_datetime(int(ms), unit="ms").strftime("%d %b %Y %H:%M:%S UTC")
+
+
+def size_of(action, table):
+    r = log[(log["action"] == action) & (log["table"] == table)]
+    return (int(r.iloc[-1]["rows_after"]), int(r.iloc[-1]["cols_after"])) if len(r) else None
+
+
+N = 5
+# item properties: first raw rows, then rows of the 2 properties we keep
+ip = pd.read_csv(DATA_DIR / "item_properties_part1.csv", nrows=N, dtype=str)
+small = pd.read_csv(WORK_DIR / "item_props_small.csv.gz", nrows=50_000, dtype=str)
+kept = pd.concat([small[small["property"] == "available"].head(2), small[small["property"] == "categoryid"].head(2)])
+sz1, sz2 = size_of("read raw file", "item_properties_part1.csv"), size_of("read raw file", "item_properties_part2.csv")
+fig = plt.figure(figsize=(8, 4.5), dpi=200)
+heading(fig, "Raw file: item_properties_part1.csv (part 2 has the same 4 columns)",
+        (f"Part 1: {sz1[0]:,} rows x {sz1[1]} columns" if sz1 else "") + (f"; part 2: {sz2[0]:,} rows. " if sz2 else ". ")
+        + "Long format: 1 row = 1 property value of 1 item at 1 time.")
+a1 = fig.add_axes([0.03, 0.42, 0.94, 0.3])
+table_panel(a1, ip, f"First {N} rows (coded names and values). Row 1: {ip['timestamp'].iloc[0]} ms = {utc(ip['timestamp'].iloc[0])}")
+a2 = fig.add_axes([0.03, 0.08, 0.94, 0.24]); table_panel(a2, kept, "Rows of the 2 properties we keep (step 1 output): available (0/1) and categoryid")
+save(fig, "08_raw_item_properties.png", "first rows of data_raw/item_properties_part1.csv and work/item_props_small.csv.gz")
+
+ev = pd.read_csv(DATA_DIR / "events.csv", nrows=N, dtype=str)
+ev_tx = pd.read_csv(DATA_DIR / "events.csv", nrows=200_000, dtype=str)
+ev_tx = ev_tx[ev_tx["event"] == "transaction"].head(1)
+sz = size_of("read raw file", "events.csv")
+fig = plt.figure(figsize=(8, 4.5), dpi=200)
+heading(fig, "Raw file: events.csv",
+        (f"{sz[0]:,} rows x {sz[1]} columns. " if sz else "") + "1 row = 1 customer action (view, addtocart or transaction) on 1 item. "
+        "transactionid is empty unless the event is a transaction.")
+a1 = fig.add_axes([0.03, 0.40, 0.94, 0.33])
+table_panel(a1, ev, f"First {N} rows of the file. Row 1 time: {ev['timestamp'].iloc[0]} ms = {utc(ev['timestamp'].iloc[0])}")
+if len(ev_tx):
+    a2 = fig.add_axes([0.03, 0.12, 0.94, 0.14]); table_panel(a2, ev_tx, "First transaction row in the file (has a transactionid)")
+save(fig, "09_raw_events.png", "first rows of data_raw/events.csv")
+
+ct = pd.read_csv(DATA_DIR / "category_tree.csv", nrows=N + 2, dtype=str)
+sz = size_of("load category tree", "category_tree")
+fig = plt.figure(figsize=(8, 4.5), dpi=200)
+heading(fig, "Raw file: category_tree.csv",
+        (f"{sz[0]:,} rows x {sz[1]} columns. " if sz else "") + "1 row = 1 category and its parent category. "
+        "parentid is empty for a top-level category.")
+a1 = fig.add_axes([0.25, 0.12, 0.5, 0.6]); table_panel(a1, ct, f"First {len(ct)} rows of the file (an empty parentid = top-level category)")
+save(fig, "10_raw_category_tree.png", "first rows of data_raw/category_tree.csv")
+
+cols9 = ["itemid", "snapshot", "cat", "parent_cat", "views_1w", "atc_1w", "tx_1w", "changes_4w", "y_next_out"]
+sample = mt[[c for c in cols9 if c in mt.columns]].head(N).copy()
+for c in sample.columns:   # show whole numbers without ".0"
+    if pd.api.types.is_float_dtype(sample[c]) and (sample[c].dropna() % 1 == 0).all():
+        sample[c] = sample[c].astype("Int64")
+fig = plt.figure(figsize=(8, 4.5), dpi=200)
+heading(fig, "Final table: modelling table (input for the models)",
+        f"{len(mt):,} rows x {mt.shape[1]} columns. 1 row = 1 in-stock, active item in 1 week. "
+        f"Target y_next_out = 1 if the item is out of stock 7 days later. Showing {len(sample.columns)} of {mt.shape[1]} columns; "
+        "all columns are described in docs/data_dictionary.md.")
+a1 = fig.add_axes([0.03, 0.2, 0.94, 0.5]); table_panel(a1, sample, f"First {N} rows")
+save(fig, "11_modelling_table.png", "work/modelling_table_features.csv.gz")
 
 print(f"{len(made)} charts in {CH}:")
 for m in made:
