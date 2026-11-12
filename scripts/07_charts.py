@@ -152,7 +152,7 @@ for split in ["train", "validate", "test"]:
             color=INK2, fontsize=10)
 ax.bar(xx, tb["pct"], color=BLUE, width=0.62)
 ax.axhline(overall, color=INK2, linewidth=1, linestyle="--", label=f"overall {overall:.1f}%")
-ax.legend(loc="upper left", bbox_to_anchor=(0, 0.9), fontsize=9.5)
+ax.legend(loc="upper right", bbox_to_anchor=(1, 0.9), fontsize=9.5)
 ax.set_ylim(0, tb["pct"].max() * 1.3)
 for i in [int(tb["pct"].idxmax()), int(tb["pct"].idxmin())]:
     ax.text(i, tb["pct"][i] + 0.4, f"{tb['pct'][i]:.1f}%", ha="center", fontsize=9.5)
@@ -215,12 +215,12 @@ miss = miss[miss > 0]
 unknown = 100 * mt["cat_missing"].mean()
 fig, ax = new("Missing values in the modelling table",
               f"Share of empty cells per column; columns with no empty cells are not shown. "
-              f"Also: category 'Unknown' (code -1, not empty) in {unknown:.1f}% of rows.", left=0.28)
+              f"Also: category 'Unknown' (code -1, not empty) in {unknown:.1f}% of rows.", left=0.33)
 yy = np.arange(len(miss))
 ax.barh(yy, miss.values, color=BLUE, height=0.5)
 for yi, v in zip(yy, miss.values):
     ax.text(v + 1, yi, f"{v:.1f}%", va="center", fontsize=10.5)
-ax.set_yticks(yy, miss.index)
+ax.set_yticks(yy, miss.index, fontsize=10)
 ax.set_xlim(0, 100)
 ax.set_xlabel("% of rows empty")
 ax.grid(axis="y", visible=False)
@@ -269,8 +269,8 @@ small = pd.read_csv(WORK_DIR / "item_props_small.csv.gz", nrows=50_000, dtype=st
 kept = pd.concat([small[small["property"] == "available"].head(2), small[small["property"] == "categoryid"].head(2)])
 sz1, sz2 = size_of("read raw file", "item_properties_part1.csv"), size_of("read raw file", "item_properties_part2.csv")
 fig = plt.figure(figsize=(8, 4.5), dpi=200)
-heading(fig, "Raw file: item_properties_part1.csv (part 2 has the same 4 columns)",
-        (f"Part 1: {sz1[0]:,} rows x {sz1[1]} columns" if sz1 else "") + (f"; part 2: {sz2[0]:,} rows. " if sz2 else ". ")
+heading(fig, "Raw file: item_properties_part1.csv",
+        (f"Part 1: {sz1[0]:,} rows x {sz1[1]} columns" if sz1 else "") + (f"; part 2 has the same columns, {sz2[0]:,} rows. " if sz2 else ". ")
         + "Long format: 1 row = 1 property value of 1 item at 1 time.")
 a1 = fig.add_axes([0.03, 0.42, 0.94, 0.3])
 table_panel(a1, ip, f"First {N} rows (coded names and values). Row 1: {ip['timestamp'].iloc[0]} ms = {utc(ip['timestamp'].iloc[0])}")
