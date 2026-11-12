@@ -5,28 +5,37 @@ Group G31-04, Dataset S1. This guide is for every group member. You do not need 
 **The one rule:** every number and chart in our slides and report must come from these scripts. Never type or change a
 number by hand. If something must change, change the script, run everything again, and use the new outputs.
 
-## 0. The standalone notebook (for the submission and for the lecturer)
-**File:** `notebooks/G31-04_Progress1_DataPrep.ipynb`. This is the file to submit. It needs no GitHub and no access to our Google Drive:
-all code is inside it. Anyone can run it in Google Colab or Jupyter with only the 4 raw CSV files.
+## 0. The data preparation notebook (for the submission and for the lecturer)
+**File:** `notebooks/G31-04_Progress1_DataPrep.ipynb`. This is the file to submit. All code is inside; it needs only the
+4 raw CSV files. It shows the whole data preparation as one readable process:
 
-1. Open it: in Colab choose **File > Upload notebook** and pick the file (in Jupyter just open it).
-2. In **cell 1**, choose how to give the 4 raw files (`RAW_SOURCE`):
-   - `download` (default): downloads them from the group's public Drive folder. No sign-in, nothing to type.
-   - `upload`: Colab shows a button; pick the 4 CSV files, or one zip with them, from your computer. Large files upload slowly.
-   - `folder`: the files are already in a folder; type its path in `RAW_FOLDER`. In Colab you can also drag the 4 files into
-     `G31-04_run/data_raw` in the **Files** panel on the left; then any choice works, because files already there are used.
+| Section | What happens |
+|---|---|
+| 0 | Setup and the 4 raw files |
+| 1 | Load the raw data and look at it (columns, first rows, types, time range) |
+| 2 | Data quality checks: each issue, how many rows, and what we decide |
+| 3 | Cleaning (row and column counts before and after each step) |
+| 4 | Weekly item table and the target (out of stock next week) |
+| 5 | Feature engineering with the reason for each feature, and a leakage check that recounts 300 random rows from the data |
+| 6 | Final model-ready dataset and its data dictionary |
+| 7 | Initial EDA charts |
+| 8 | Save everything |
+
+**How to run**
+1. Open it in Colab (*File > Upload notebook*, or open it from Google Drive).
+2. Cell 0.2 decides where the raw files come from:
+   - `USE_MY_DRIVE` (on): if your Drive has `My Drive/Colab Notebooks/G31-04/G31-04-RAW` with the 4 CSVs and `.../G31-04-OUTPUT`,
+     the raw files are read from there and all results are saved there. Colab asks once to connect Google Drive.
+   - Without that folder (for example the lecturer), nothing is read from or written to Drive and `RAW_SOURCE` is used:
+     `download` (default, public link, no sign-in), `upload` (pick the files or one zip) or `folder` (a path).
 3. **Runtime > Run all**. About 5 to 10 minutes.
-4. Everything is in the folder `G31-04_run/` and in `G31-04_Progress1_results.zip`, which Colab downloads at the end:
-   the KPI workbook (with Reconcile, data dictionary and cleaning log sheets), the cleaned dataset CSV, `docs/data_dictionary.md`,
-   `docs/cleaning_log.md`, the comparison with the Progress 1 slides and all 11 charts.
-5. For the submission: after the run, **File > Download > Download .ipynb** (the notebook with outputs) and
-   **File > Print > Save as PDF** (`G31-04_Progress1_DataPrep.pdf`).
+4. Results: folder `G31-04_run/outputs` and `G31-04_Progress1_results.zip` (downloaded at the end; with `USE_MY_DRIVE` also in `G31-04-OUTPUT`):
+   `G31-04_Progress1_CleanedData.csv` (the final dataset), `G31-04_Progress1_DataPrep.xlsx` (cleaning log, data quality checks,
+   data dictionary, column summary, first rows), the same tables as CSV files, and 9 charts.
+5. Submission: after the run, *File > Download > Download .ipynb* (with outputs) and *File > Print > Save as PDF*.
 
-Keep the raw data folder shared with "anyone with the link" until grading is finished, or the `download` choice stops working.
-
-**How it stays the same as the scripts.** The notebook is made by `python tools/build_standalone_notebook.py`, which copies the code of
-`scripts/01_*.py` to `scripts/07_*.py` into its cells. After any change to a script, run that command again and commit the new notebook.
-A test on the same input data gave identical results from the notebook and from the scripts (LOG.md section 16).
+The notebook does not compare its results with the proposal or with earlier runs. The numbers are what the data gives with the
+definitions written in section 4 of the notebook.
 
 ## 1. Run the repository version in Google Colab (for the group)
 

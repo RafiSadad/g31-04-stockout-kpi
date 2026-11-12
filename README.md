@@ -83,9 +83,10 @@ Files made during a run but not uploaded: `work/` (intermediate tables, for exam
 
 **Step-by-step guide for everyone: [HOW_TO_USE.md](HOW_TO_USE.md).**
 
-**Standalone notebook for the submission and the lecturer: [notebooks/G31-04_Progress1_DataPrep.ipynb](notebooks/G31-04_Progress1_DataPrep.ipynb).**
-All code is inside; it only needs the 4 raw CSVs (download from a public link, upload, or a folder). No GitHub or Drive access needed.
-It is built from the scripts by `python tools/build_standalone_notebook.py`.
+**Data preparation notebook for the submission and the lecturer: [notebooks/G31-04_Progress1_DataPrep.ipynb](notebooks/G31-04_Progress1_DataPrep.ipynb).**
+All code is inside; it only needs the 4 raw CSVs (from your Drive folder, a public link, an upload, or a folder). It shows the whole
+process: raw data, quality checks, cleaning with row and column counts, weekly table and target, feature engineering with a leakage check,
+final dataset, data dictionary and initial EDA.
 
 **Recommended: Google Colab** (no local setup, same result on every computer).
 Open [notebooks/G31-04_DataPrep_Colab.ipynb](https://colab.research.google.com/github/RafiSadad/g31-04-stockout-kpi/blob/main/notebooks/G31-04_DataPrep_Colab.ipynb) in Colab, set the Google Drive folder with the raw CSVs in cell 1, then *Runtime > Run all*.

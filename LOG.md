@@ -264,3 +264,34 @@ zip in a sub-folder). The real download and the Colab upload button run only in 
 
 **What can fail.** `gdown` cannot download (Drive quota or the folder is no longer public): choose `upload` or `folder`.
 `Missing raw files`: file names must be exactly the 4 names above. Colab with too little RAM: use a normal Colab runtime (about 12 GB).
+
+## 17. First run on the real data in Colab, a counting bug, and a new data preparation notebook (12 Nov 2026)
+**Real-data run (Rafi, Colab, results uploaded to `outputs/G31-04_Progress1_results/`).** Raw counts as before: 20,275,902 property rows
+(1,104 property names), 2,756,101 events, 460 exact duplicate events removed (2,755,641 left), 6,707,888 item-weeks with a known status,
+283,849 modelling rows, 29,502 stock-outs. Reconcile: 15 OK and the known KPI3 min DIFF.
+
+**Bug found in that run.** The cleaning log said 171,748 for "first record and each status change". That cannot be right, because each of
+the 417,053 items has a first record. The values are text (pandas string type); comparing with the empty value before the first record
+gives an empty result, and `sum()` skipped it, so only the changes were counted. Fixed in `scripts/03_build_kpis.py`; the right count is
+171,748 + 417,053 = 588,801. It was a check only and no other number used it.
+
+**New data preparation notebook.** Rafi asked for a notebook that shows the real process of cleaning and feature engineering before
+training, without code imported or copied from elsewhere, and without chasing earlier numbers. `notebooks/G31-04_Progress1_DataPrep.ipynb`
+was rewritten by hand (the generator `tools/build_standalone_notebook.py` was removed):
+- sections: setup and raw files; load and look; data quality checks (issue, count, decision); cleaning with a log of rows and columns;
+  weekly item table and target; feature engineering with reasons; a leakage check that recounts 300 random rows directly from the cleaned
+  events and stock records (views_1w, tx_4w, days_since_last_tx, status at t, target); final dataset; data dictionary; initial EDA; save.
+- No KPI tables, no Reconcile with the proposal and no comparison with the slides. The definitions are the same as in section 3.
+- New features compared with the scripts: `has_tx_before` (flag for an empty `days_since_last_tx`), `snapshots_in_status` (consecutive
+  snapshots with the current status up to t, counted from the first record) and `oos_share_4w` (share of the up to 4 previous snapshots
+  that were out of stock). `cat_demand_1w` counts all active items of the category, also items without a known status.
+- Empty values that carry meaning are kept empty (with flags) and the reason is written in section 6 of the notebook.
+- Colab: with `USE_MY_DRIVE`, raw files come from `My Drive/Colab Notebooks/G31-04/G31-04-RAW` and results go to `.../G31-04-OUTPUT`.
+  Without that folder, `download` (public link), `upload` or `folder` is used and nothing is written to Drive.
+
+**How it was checked.** Synthetic test data: all 37 cells ran; the leakage check found 0 differences in 300 rows; the final table had the
+same number of rows as the scripts on the same data (4,229). The Drive mode was tested with a local folder in the same layout (raw files
+read from G31-04-RAW, no download, results written to G31-04-OUTPUT). Not yet run on the real data.
+
+**What can fail.** The leakage check stops the notebook with an AssertionError if a feature or the target does not match a direct
+recount; then the feature code has a bug and the dataset must not be used. Too little RAM: use a standard Colab runtime.
