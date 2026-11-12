@@ -18,7 +18,7 @@ number by hand. If something must change, change the script, run everything agai
 | 4 | Weekly item table and the target (out of stock next week) |
 | 5 | Feature engineering with the reason for each feature, and a leakage check that recounts 300 random rows from the data |
 | 6 | Final model-ready dataset and its data dictionary |
-| 7 | Initial EDA charts |
+| 7 | Pictures of each raw file (both item_properties parts too), the data pipeline tree, and initial EDA charts |
 | 8 | Save everything |
 
 **How to run**
@@ -31,7 +31,8 @@ number by hand. If something must change, change the script, run everything agai
 3. **Runtime > Run all**. About 5 to 10 minutes.
 4. Results: folder `G31-04_run/outputs` and `G31-04_Progress1_results.zip` (downloaded at the end; with `USE_MY_DRIVE` also in `G31-04-OUTPUT`):
    `G31-04_Progress1_CleanedData.csv` (the final dataset), `G31-04_Progress1_DataPrep.xlsx` (cleaning log, data quality checks,
-   data dictionary, column summary, first rows), the same tables as CSV files, and 9 charts.
+   data dictionary, column summary, first rows), the same tables as CSV files, and 11 pictures and charts, including
+   `06_pipeline_tree.png`: every table from the 4 raw files to the final table, with its rows x columns, and every step between them.
 5. Submission: after the run, *File > Download > Download .ipynb* (with outputs) and *File > Print > Save as PDF*.
 
 The notebook does not compare its results with the proposal or with earlier runs. The numbers are what the data gives with the

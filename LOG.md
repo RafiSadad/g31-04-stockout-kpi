@@ -295,3 +295,16 @@ read from G31-04-RAW, no download, results written to G31-04-OUTPUT). Not yet ru
 
 **What can fail.** The leakage check stops the notebook with an AssertionError if a feature or the target does not match a direct
 recount; then the feature code has a bug and the dataset must not be used. Too little RAM: use a standard Colab runtime.
+
+## 18. Every raw file shown, every step tracked, data pipeline tree (12 Nov 2026)
+- Rafi saw no picture for `item_properties_part2.csv` in the run. Part 2 was always read and counted (step 1.1, 9,275,903 rows,
+  stacked with part 1 into 20,275,902 rows); only its picture was missing. Now section 1.1 also shows the first rows of part 2, and
+  section 7.2 makes a picture of each of the 4 raw files.
+- `log_step` now records for every step its input table(s) and output table (columns `input` and `output` in the cleaning log),
+  next to the rows and columns before and after. A step whose output is also an input changes that table in place.
+- New cell 7.3 draws the data pipeline tree from this log (`06_pipeline_tree.png`): one box per table with rows x columns after its
+  last step, one arrow per step labelled with its cell number, raw files on top and the final table at the bottom. Arrows that skip
+  levels go around on the right. Nothing in the tree is typed by hand.
+- Chart files renumbered: 01 and 02 item_properties part 1 and 2, 03 events, 04 category_tree, 05 final table, 06 pipeline tree,
+  07 rows per step, 08 target balance, 09 views distribution, 10 feature correlation, 11 empty values.
+- Checked on synthetic data: all 38 cells ran, leakage check 0 of 300 rows differ, tree and pictures checked by eye.
