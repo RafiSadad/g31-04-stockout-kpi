@@ -40,7 +40,7 @@ What the course guideline (section 5 and 8) asks for Progress 1, and its status 
 | Data flow diagram from raw data to model-ready data | Done (draft, Peeranat to check) | [docs/data_flow.png](docs/data_flow.png) |
 | Initial EDA (distributions, correlations, target balance) | Charts ready (step 7); interpretation by the Data Scientists | `outputs/charts/04_target_balance.png`, `05_views_distribution.png`, `06_feature_correlation.png` |
 | Submission: cleaned dataset (CSV) | Ready (made by step 6) | `outputs/G31-04_Progress1_CleanedData.csv`, saved to Google Drive by the notebook (too big for GitHub, upload to LEB2) |
-| Submission: notebook (.ipynb and PDF with outputs) | Ready to run | [notebooks/G31-04_DataPrep_Colab.ipynb](notebooks/G31-04_DataPrep_Colab.ipynb); run it in Colab, then save as PDF |
+| Submission: notebook (.ipynb and PDF with outputs) | Ready to run | [notebooks/G31-04_Progress1_DataPrep.ipynb](notebooks/G31-04_Progress1_DataPrep.ipynb) (standalone); run it in Colab, then download the .ipynb and save as PDF |
 
 Rule 7.4: every number in the slides and report must match the code. Use the numbers in the `Reconcile` and `Cleaning_log` sheets.
 
@@ -82,6 +82,10 @@ Files made during a run but not uploaded: `work/` (intermediate tables, for exam
 ## 4. How to run
 
 **Step-by-step guide for everyone: [HOW_TO_USE.md](HOW_TO_USE.md).**
+
+**Standalone notebook for the submission and the lecturer: [notebooks/G31-04_Progress1_DataPrep.ipynb](notebooks/G31-04_Progress1_DataPrep.ipynb).**
+All code is inside; it only needs the 4 raw CSVs (download from a public link, upload, or a folder). No GitHub or Drive access needed.
+It is built from the scripts by `python tools/build_standalone_notebook.py`.
 
 **Recommended: Google Colab** (no local setup, same result on every computer).
 Open [notebooks/G31-04_DataPrep_Colab.ipynb](https://colab.research.google.com/github/RafiSadad/g31-04-stockout-kpi/blob/main/notebooks/G31-04_DataPrep_Colab.ipynb) in Colab, set the Google Drive folder with the raw CSVs in cell 1, then *Runtime > Run all*.

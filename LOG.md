@@ -238,3 +238,29 @@ because a duplicate event never makes an item active on its own.
 - Tested with fakes for gdown and the Drive API (public download ok: no sign-in in cell 3, one sign-in in the save cell; public download
   fails: fallback with one sign-in and size check) and a full notebook run in path mode. The real `gdown` and Drive calls run only in Colab
   and were not run here. If `gdown` fails on the real folder for another reason, the fallback should still work; report the message.
+
+## 16. Standalone notebook for the submission (12 Nov 2026)
+**Why.** The submission notebook must run for the lecturer without our GitHub repository or our Google Drive.
+
+**What was done**
+- `tools/build_standalone_notebook.py` (new) writes `notebooks/G31-04_Progress1_DataPrep.ipynb` (54 cells). It copies the code of
+  `scripts/01_extract_raw.py` to `scripts/07_charts.py`, `cleanlog.py` and `dictionary_spec.py` into the notebook. Only the lines that import
+  from `config`, `cleanlog` and `dictionary_spec` are removed; the setup cell defines the same names (folders, `UNKNOWN_CAT`, `LOG_PATH`).
+  Each script's docstring becomes the text above its cells, and long scripts are split at their `# ----------` comments.
+- Each step starts with `_before = set(globals())` and ends with `_free(_before)`, which deletes the variables the step made. So every step
+  runs as if it were a new program, as the scripts do, and memory is freed between steps.
+- Cell 1 gets the raw files in one of 3 ways: `download` (default, `gdown` from the public raw data folder, no sign-in; a folder link or a
+  link to one zip file), `upload` (Colab upload button, CSVs or a zip), or `folder` (a path). CSVs inside sub-folders or inside a zip are found.
+- Extra cells: the first 3 rows of each raw file, the cleaning log, Reconcile, the comparison with the Progress 1 slides, the modelling table
+  summary, the data dictionary, all charts, the data flow diagram (stored inside the notebook as a picture), and a zip of all results.
+- Everything is written into `G31-04_run/` (Colab: `/content/G31-04_run`).
+
+**How it was checked.** On the synthetic test set: the notebook was copied alone into an empty folder and run with `folder`; its outputs
+were compared with a run of the scripts on the same input. The modelling table, all 12 workbook sheets, the cleaning log, the data
+dictionary, the slide comparison and the cleaned CSV were identical. The `download` choice was tested with a fake `gdown` (files inside a
+zip in a sub-folder). The real download and the Colab upload button run only in Colab and were not run here.
+
+**How to rerun.** Open the notebook in Colab, *Runtime > Run all*. After a change in `scripts/`: `python tools/build_standalone_notebook.py`.
+
+**What can fail.** `gdown` cannot download (Drive quota or the folder is no longer public): choose `upload` or `folder`.
+`Missing raw files`: file names must be exactly the 4 names above. Colab with too little RAM: use a normal Colab runtime (about 12 GB).

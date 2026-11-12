@@ -5,7 +5,30 @@ Group G31-04, Dataset S1. This guide is for every group member. You do not need 
 **The one rule:** every number and chart in our slides and report must come from these scripts. Never type or change a
 number by hand. If something must change, change the script, run everything again, and use the new outputs.
 
-## 1. Run everything in Google Colab (recommended)
+## 0. The standalone notebook (for the submission and for the lecturer)
+**File:** `notebooks/G31-04_Progress1_DataPrep.ipynb`. This is the file to submit. It needs no GitHub and no access to our Google Drive:
+all code is inside it. Anyone can run it in Google Colab or Jupyter with only the 4 raw CSV files.
+
+1. Open it: in Colab choose **File > Upload notebook** and pick the file (in Jupyter just open it).
+2. In **cell 1**, choose how to give the 4 raw files (`RAW_SOURCE`):
+   - `download` (default): downloads them from the group's public Drive folder. No sign-in, nothing to type.
+   - `upload`: Colab shows a button; pick the 4 CSV files, or one zip with them, from your computer. Large files upload slowly.
+   - `folder`: the files are already in a folder; type its path in `RAW_FOLDER`. In Colab you can also drag the 4 files into
+     `G31-04_run/data_raw` in the **Files** panel on the left; then any choice works, because files already there are used.
+3. **Runtime > Run all**. About 5 to 10 minutes.
+4. Everything is in the folder `G31-04_run/` and in `G31-04_Progress1_results.zip`, which Colab downloads at the end:
+   the KPI workbook (with Reconcile, data dictionary and cleaning log sheets), the cleaned dataset CSV, `docs/data_dictionary.md`,
+   `docs/cleaning_log.md`, the comparison with the Progress 1 slides and all 11 charts.
+5. For the submission: after the run, **File > Download > Download .ipynb** (the notebook with outputs) and
+   **File > Print > Save as PDF** (`G31-04_Progress1_DataPrep.pdf`).
+
+Keep the raw data folder shared with "anyone with the link" until grading is finished, or the `download` choice stops working.
+
+**How it stays the same as the scripts.** The notebook is made by `python tools/build_standalone_notebook.py`, which copies the code of
+`scripts/01_*.py` to `scripts/07_*.py` into its cells. After any change to a script, run that command again and commit the new notebook.
+A test on the same input data gave identical results from the notebook and from the scripts (LOG.md section 16).
+
+## 1. Run the repository version in Google Colab (for the group)
 
 ### 1.1 Where the data and the results are
 The notebook works with **Google Drive folder links**. Cell 1 already has the group folders:
