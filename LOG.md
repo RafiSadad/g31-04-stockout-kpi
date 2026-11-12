@@ -207,5 +207,9 @@ because a duplicate event never makes an item active on its own.
 - `HOW_TO_USE.md` (new): English step-by-step guide for all members (Colab, submission files, how to read the results, charts, token, errors).
 - Tested on synthetic data (all notebook cells ran) and, for charts 2 and 3, on the real KPI workbook from 4 Nov. Not yet run on the real data end to end.
 
+- Charts 08 to 11 (added the same day): a table picture of each raw file (item_properties part 1, events, category_tree) and of the
+  modelling table: the header row and the first rows of the file, read with `nrows`, so they are real rows. Row and column counts come
+  from the cleaning log. Coded values longer than 30 characters are shortened with "..." in the picture only.
+
 **What can fail.** `skip 03_top_categories.png`: no category has 20 or more eligible items in the latest week (only with test data).
 `ModuleNotFoundError: matplotlib`: run `pip install -r requirements.txt`.

@@ -67,6 +67,12 @@ number by hand. If something must change, change the script, run everything agai
 | `05_views_distribution.png` | How rows spread over views in the last 7 days, and the stock-out rate in each group | EDA: distributions |
 | `06_feature_correlation.png` | Spearman correlation of each feature with the target (train weeks only) | EDA: correlations, Q2 |
 | `07_missing_values.png` | Share of empty values per column of the modelling table | Data quality issues slide |
+| `08_raw_item_properties.png` | Raw item_properties file: the header and its first 5 rows, plus rows of the 2 properties we keep | Dataset or data dictionary slide: "what the raw data looks like" |
+| `09_raw_events.png` | Raw events file: the header, its first 5 rows and the first purchase row | Dataset or data dictionary slide |
+| `10_raw_category_tree.png` | Raw category tree: the header and its first rows | Dataset or data dictionary slide |
+| `11_modelling_table.png` | Final modelling table: the header and its first 5 rows (9 of the columns) | Feature engineering slide |
+
+Charts 08 to 11 show the real first rows of each file, read by the script. They are not made-up examples.
 
 The chart titles state only what the data shows. Write the interpretation in the slide text or the report yourself.
 

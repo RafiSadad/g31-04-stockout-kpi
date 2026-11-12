@@ -117,7 +117,7 @@ Do not stop step 4 with Ctrl+C: it writes a large file and the file is left brok
 | 4 | `04_demand_features.py` | Adds the 9 demand features | `work/modelling_table_features.csv.gz` |
 | 5 | `05_docs.py` | Writes the data dictionary and the cleaning log | `docs/*.md`, 2 xlsx sheets |
 | 6 | `06_export_compare.py` | Exports the cleaned modelling table as CSV for the submission; compares our counts with the Progress 1 slides | `outputs/G31-04_Progress1_CleanedData.csv` (not in git), `outputs/compare_progress1.csv` |
-| 7 | `07_charts.py` | Makes every chart for the slides and the report (cleaning funnel, KPI trend, top categories, target balance, views distribution, feature correlation, missing values) | `outputs/charts/*.png` |
+| 7 | `07_charts.py` | Makes every chart for the slides and the report (cleaning funnel, KPI trend, top categories, target balance, views distribution, feature correlation, missing values) and a picture of each raw file and the modelling table (header plus the first real rows) | `outputs/charts/*.png` |
 
 Helpers: `config.py` (folders, Unknown code), `cleanlog.py` (cleaning log), `dictionary_spec.py` (dictionary text).
 Libraries: pandas, numpy, openpyxl. Full details: `LOG.md`.
