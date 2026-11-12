@@ -10,4 +10,5 @@ python scripts/03_build_kpis.py
 python scripts/04_demand_features.py
 python scripts/05_docs.py
 python scripts/06_export_compare.py
+python scripts/07_charts.py
 # optional: mmdc -i docs/data_flow.mmd -o docs/data_flow.png -w 2400 -b white -s 2
